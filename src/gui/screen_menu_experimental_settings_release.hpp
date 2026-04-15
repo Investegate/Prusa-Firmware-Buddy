@@ -14,12 +14,19 @@ using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_
 #if PRINTER_IS_PRUSA_MK3_5()
     MI_ALT_FAN,
 #endif
-    MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN, MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT, MI_DIRECTION_E, MI_RESET_DIRECTION, MI_SERIAL_PRINTING_SCREEN_ENABLE>;
+    MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN,
+    MI_LGX_PROBE_X_OFFSET, MI_LGX_PROBE_Y_OFFSET, MI_LGX_AUTO_FILAMENT_LOAD_LENGTH, MI_LGX_FILAMENT_UNLOAD_LENGTH, MI_LGX_ENABLE_EEPROM_SAVE,
+    MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT, MI_DIRECTION_E, MI_RESET_DIRECTION, MI_SERIAL_PRINTING_SCREEN_ENABLE>;
 
 struct ExperimentalSettingsValues {
     ExperimentalSettingsValues(ScreenMenuExperimentalSettings__ &parent);
 
     int32_t z_len;
+    float probe_x_offset;
+    float probe_y_offset;
+    int32_t auto_load_length;
+    int32_t unload_length;
+    size_t eeprom_save_enabled;
     int32_t steps_per_unit_e; // has stored both index and polarity
     size_t touch_ena;
 

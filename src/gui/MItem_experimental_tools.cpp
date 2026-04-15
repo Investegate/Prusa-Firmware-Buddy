@@ -8,6 +8,7 @@
 #include "ScreenHandler.hpp"
 #include "string.h" // memcmp
 #include "img_resources.hpp"
+#include "custom_settings.hpp"
 #include <gui/menu_vars.h>
 
 #if PRINTER_IS_PRUSA_MK3_5()
@@ -35,6 +36,55 @@ MI_Z_AXIS_LEN::MI_Z_AXIS_LEN()
 
 void MI_Z_AXIS_LEN::Store() {
     set_z_max_pos_mm(GetVal());
+}
+
+/*****************************************************************************/
+static constexpr NumericInputConfig lgx_probe_offset_spin_config {
+    .min_value = -100,
+    .max_value = 100,
+    .max_decimal_places = 2,
+    .unit = Unit::millimeter,
+};
+
+MI_LGX_PROBE_X_OFFSET::MI_LGX_PROBE_X_OFFSET()
+    : WiSpin(custom_settings::probe_x_offset_mm, lgx_probe_offset_spin_config, _("Probe X offset")) {}
+
+void MI_LGX_PROBE_X_OFFSET::Store() {
+    custom_settings::probe_x_offset_mm = GetVal();
+}
+
+MI_LGX_PROBE_Y_OFFSET::MI_LGX_PROBE_Y_OFFSET()
+    : WiSpin(custom_settings::probe_y_offset_mm, lgx_probe_offset_spin_config, _("Probe Y offset")) {}
+
+void MI_LGX_PROBE_Y_OFFSET::Store() {
+    custom_settings::probe_y_offset_mm = GetVal();
+}
+
+static constexpr NumericInputConfig lgx_filament_length_spin_config {
+    .min_value = 0,
+    .max_value = 1000,
+    .unit = Unit::millimeter,
+};
+
+MI_LGX_AUTO_FILAMENT_LOAD_LENGTH::MI_LGX_AUTO_FILAMENT_LOAD_LENGTH()
+    : WiSpin(custom_settings::auto_filament_load_length_mm, lgx_filament_length_spin_config, _("Auto filament load length")) {}
+
+void MI_LGX_AUTO_FILAMENT_LOAD_LENGTH::Store() {
+    custom_settings::auto_filament_load_length_mm = GetVal();
+}
+
+MI_LGX_FILAMENT_UNLOAD_LENGTH::MI_LGX_FILAMENT_UNLOAD_LENGTH()
+    : WiSpin(custom_settings::filament_unload_length_mm, lgx_filament_length_spin_config, _("Filament unload length")) {}
+
+void MI_LGX_FILAMENT_UNLOAD_LENGTH::Store() {
+    custom_settings::filament_unload_length_mm = GetVal();
+}
+
+MI_LGX_ENABLE_EEPROM_SAVE::MI_LGX_ENABLE_EEPROM_SAVE()
+    : WI_ICON_SWITCH_OFF_ON_t(custom_settings::enable_eeprom_save, _("EEPROM save")) {}
+
+void MI_LGX_ENABLE_EEPROM_SAVE::OnChange([[maybe_unused]] size_t old_index) {
+    custom_settings::enable_eeprom_save = value();
 }
 
 /*****************************************************************************/

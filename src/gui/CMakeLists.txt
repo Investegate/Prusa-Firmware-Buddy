@@ -28,6 +28,7 @@ target_sources(
           MItem_basic_selftest.cpp
           MItem_crash.cpp
           MItem_experimental_tools.cpp
+          custom_settings.cpp
           MItem_filament.cpp
           MItem_hardware.cpp
           MItem_input_shaper.cpp

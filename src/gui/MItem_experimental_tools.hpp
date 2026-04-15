@@ -35,6 +35,38 @@ public:
     void Store();
 };
 
+class MI_LGX_PROBE_X_OFFSET : public WiSpin {
+public:
+    MI_LGX_PROBE_X_OFFSET();
+    void Store();
+};
+
+class MI_LGX_PROBE_Y_OFFSET : public WiSpin {
+public:
+    MI_LGX_PROBE_Y_OFFSET();
+    void Store();
+};
+
+class MI_LGX_AUTO_FILAMENT_LOAD_LENGTH : public WiSpin {
+public:
+    MI_LGX_AUTO_FILAMENT_LOAD_LENGTH();
+    void Store();
+};
+
+class MI_LGX_FILAMENT_UNLOAD_LENGTH : public WiSpin {
+public:
+    MI_LGX_FILAMENT_UNLOAD_LENGTH();
+    void Store();
+};
+
+class MI_LGX_ENABLE_EEPROM_SAVE : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    MI_LGX_ENABLE_EEPROM_SAVE();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
 class MI_RESET_Z_AXIS_LEN : public IWindowMenuItem {
 public:
     MI_RESET_Z_AXIS_LEN();

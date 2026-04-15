@@ -21,6 +21,10 @@ void ScreenMenuExperimentalSettings::clicked_return() {
     switch (MsgBoxQuestion(_(save_and_reboot), Responses_YesNoCancel)) {
     case Response::Yes:
         Item<MI_Z_AXIS_LEN>().Store();
+        Item<MI_LGX_PROBE_X_OFFSET>().Store();
+        Item<MI_LGX_PROBE_Y_OFFSET>().Store();
+        Item<MI_LGX_AUTO_FILAMENT_LOAD_LENGTH>().Store();
+        Item<MI_LGX_FILAMENT_UNLOAD_LENGTH>().Store();
         Item<MI_STEPS_PER_UNIT_E>().Store();
         Item<MI_DIRECTION_E>().Store();
 
@@ -73,6 +77,12 @@ bool ExperimentalSettingsValues::operator!=(const ExperimentalSettingsValues &ot
 
 ExperimentalSettingsValues::ExperimentalSettingsValues(ScreenMenuExperimentalSettings__ &parent)
     : z_len(parent.Item<MI_Z_AXIS_LEN>().GetVal())
+    , probe_x_offset(parent.Item<MI_LGX_PROBE_X_OFFSET>().GetVal())
+    , probe_y_offset(parent.Item<MI_LGX_PROBE_Y_OFFSET>().GetVal())
+    , auto_load_length(parent.Item<MI_LGX_AUTO_FILAMENT_LOAD_LENGTH>().GetVal())
+    , unload_length(parent.Item<MI_LGX_FILAMENT_UNLOAD_LENGTH>().GetVal())
+    , eeprom_save_enabled(parent.Item<MI_LGX_ENABLE_EEPROM_SAVE>().value())
     , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal() * ((parent.Item<MI_DIRECTION_E>().get_index() == 1) ? -1 : 1))
+    , touch_ena(parent.Item<MI_SERIAL_PRINTING_SCREEN_ENABLE>().value())
 
 {}
