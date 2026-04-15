@@ -198,8 +198,24 @@ void MarlinSettings::postprocess() {
 }
 
 bool MarlinSettings::save() {
-  DEBUG_ERROR_MSG("EEPROM disabled");
-  return false;
+  #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+    if (!get_enable_eeprom_save()) return false;
+
+    #if HAS_BED_PROBE
+      set_probe_x_offset_mm(probe_offset[X_AXIS]);
+      set_probe_y_offset_mm(probe_offset[Y_AXIS]);
+    #endif
+
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      set_auto_filament_load_length_mm(uint16_t(ABS(fc_settings[0].load_length)));
+      set_filament_unload_length_mm(uint16_t(ABS(fc_settings[0].unload_length)));
+    #endif
+
+    return true;
+  #else
+    DEBUG_ERROR_MSG("EEPROM disabled");
+    return false;
+  #endif
 }
 
 /**
@@ -336,6 +352,10 @@ void MarlinSettings::reset() {
     constexpr float dpo[XYZ] = NOZZLE_TO_PROBE_OFFSET;
     static_assert(COUNT(dpo) == 3, "NOZZLE_TO_PROBE_OFFSET must contain offsets for X, Y, and Z.");
     LOOP_XYZ(a) probe_offset[a] = dpo[a];
+    #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+      probe_offset[X_AXIS] = get_probe_x_offset_mm();
+      probe_offset[Y_AXIS] = get_probe_y_offset_mm();
+    #endif
   #endif
 
   //
@@ -515,8 +535,13 @@ void MarlinSettings::reset() {
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     for (uint8_t e = 0; e < EXTRUDERS; e++) {
-      fc_settings[e].unload_length = FILAMENT_CHANGE_UNLOAD_LENGTH;
-      fc_settings[e].load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
+      #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+        fc_settings[e].unload_length = get_filament_unload_length_mm();
+        fc_settings[e].load_length = get_auto_filament_load_length_mm();
+      #else
+        fc_settings[e].unload_length = FILAMENT_CHANGE_UNLOAD_LENGTH;
+        fc_settings[e].load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
+      #endif
     }
   #endif
 

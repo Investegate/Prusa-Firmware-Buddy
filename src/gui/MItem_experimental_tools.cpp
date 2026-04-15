@@ -201,6 +201,60 @@ void MI_RESET_CURRENTS::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_currents);
 }
 
+static constexpr NumericInputConfig lgx_probe_offset_spin_config {
+    .min_value = -100,
+    .max_value = 100,
+    .step = 0.01,
+    .max_decimal_places = 2,
+    .unit = Unit::millimeter,
+};
+
+MI_LGX_PROBE_X_OFFSET::MI_LGX_PROBE_X_OFFSET()
+    : WiSpin(config_store().probe_x_offset_mm.get(), lgx_probe_offset_spin_config, _("Probe X offset")) {}
+
+void MI_LGX_PROBE_X_OFFSET::Store() {
+    config_store().probe_x_offset_mm.set(GetVal());
+}
+
+MI_LGX_PROBE_Y_OFFSET::MI_LGX_PROBE_Y_OFFSET()
+    : WiSpin(config_store().probe_y_offset_mm.get(), lgx_probe_offset_spin_config, _("Probe Y offset")) {}
+
+void MI_LGX_PROBE_Y_OFFSET::Store() {
+    config_store().probe_y_offset_mm.set(GetVal());
+}
+
+static constexpr NumericInputConfig lgx_filament_length_spin_config {
+    .min_value = 0,
+    .max_value = EXTRUDE_MAXLENGTH,
+    .unit = Unit::millimeter,
+};
+
+MI_LGX_AUTO_FILAMENT_LOAD_LENGTH::MI_LGX_AUTO_FILAMENT_LOAD_LENGTH()
+    : WiSpin(config_store().auto_filament_load_length_mm.get(), lgx_filament_length_spin_config, _("Auto filament load length")) {}
+
+void MI_LGX_AUTO_FILAMENT_LOAD_LENGTH::Store() {
+    config_store().auto_filament_load_length_mm.set(GetVal());
+}
+
+MI_LGX_FILAMENT_UNLOAD_LENGTH::MI_LGX_FILAMENT_UNLOAD_LENGTH()
+    : WiSpin(config_store().filament_unload_length_mm.get(), lgx_filament_length_spin_config, _("Filament unload length")) {}
+
+void MI_LGX_FILAMENT_UNLOAD_LENGTH::Store() {
+    config_store().filament_unload_length_mm.set(GetVal());
+}
+
+bool MI_LGX_ENABLE_EEPROM_SAVE::init_index() {
+    return config_store().enable_eeprom_save.get();
+}
+
+void MI_LGX_ENABLE_EEPROM_SAVE::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().enable_eeprom_save.set(!config_store().enable_eeprom_save.get());
+}
+
+void MI_LGX_ENABLE_EEPROM_SAVE::Store() {
+    config_store().enable_eeprom_save.set(get_index() != 0);
+}
+
 /*****************************************************************************/
 // MI_SAVE_AND_RETURN
 MI_SAVE_AND_RETURN::MI_SAVE_AND_RETURN()

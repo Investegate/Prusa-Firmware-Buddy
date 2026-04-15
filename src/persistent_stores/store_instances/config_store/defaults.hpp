@@ -263,6 +263,11 @@ namespace defaults {
         0
 #endif
     };
+    inline constexpr float probe_x_offset_mm { 0.0f };
+    inline constexpr float probe_y_offset_mm { 0.0f };
+    inline constexpr uint16_t auto_filament_load_length_mm { static_cast<uint16_t>(FILAMENT_CHANGE_FAST_LOAD_LENGTH) };
+    inline constexpr uint16_t filament_unload_length_mm { static_cast<uint16_t>(FILAMENT_CHANGE_UNLOAD_LENGTH) };
+    inline constexpr bool enable_eeprom_save { true };
 
     inline constexpr int16_t homing_sens_x { stallguard_sensitivity_unset };
     inline constexpr int16_t homing_sens_y { stallguard_sensitivity_unset };

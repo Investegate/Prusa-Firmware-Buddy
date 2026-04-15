@@ -101,6 +101,26 @@ extern "C" bool get_print_area_based_heating_enabled() {
     return config_store().heat_entire_bed.get() == false;
 }
 
+extern "C" float get_probe_x_offset_mm() {
+    return config_store().probe_x_offset_mm.get();
+}
+
+extern "C" float get_probe_y_offset_mm() {
+    return config_store().probe_y_offset_mm.get();
+}
+
+extern "C" uint16_t get_auto_filament_load_length_mm() {
+    return config_store().auto_filament_load_length_mm.get();
+}
+
+extern "C" uint16_t get_filament_unload_length_mm() {
+    return config_store().filament_unload_length_mm.get();
+}
+
+extern "C" bool get_enable_eeprom_save() {
+    return config_store().enable_eeprom_save.get();
+}
+
 #else
 extern "C" bool has_wrong_x() {
     log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
@@ -402,4 +422,24 @@ extern "C" void set_rms_current_ma_e(uint16_t current) {
     } else {
         log_error(EEPROM, "%s: current must be greater than 0", __PRETTY_FUNCTION__);
     }
+}
+
+extern "C" void set_probe_x_offset_mm(float value) {
+    config_store().probe_x_offset_mm.set(value);
+}
+
+extern "C" void set_probe_y_offset_mm(float value) {
+    config_store().probe_y_offset_mm.set(value);
+}
+
+extern "C" void set_auto_filament_load_length_mm(uint16_t value) {
+    config_store().auto_filament_load_length_mm.set(value);
+}
+
+extern "C" void set_filament_unload_length_mm(uint16_t value) {
+    config_store().filament_unload_length_mm.set(value);
+}
+
+extern "C" void set_enable_eeprom_save(bool value) {
+    config_store().enable_eeprom_save.set(value);
 }

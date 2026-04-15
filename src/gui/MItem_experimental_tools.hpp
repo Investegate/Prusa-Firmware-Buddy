@@ -144,6 +144,43 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_LGX_PROBE_X_OFFSET : public WiSpin {
+public:
+    MI_LGX_PROBE_X_OFFSET();
+    void Store();
+};
+
+class MI_LGX_PROBE_Y_OFFSET : public WiSpin {
+public:
+    MI_LGX_PROBE_Y_OFFSET();
+    void Store();
+};
+
+class MI_LGX_AUTO_FILAMENT_LOAD_LENGTH : public WiSpin {
+public:
+    MI_LGX_AUTO_FILAMENT_LOAD_LENGTH();
+    void Store();
+};
+
+class MI_LGX_FILAMENT_UNLOAD_LENGTH : public WiSpin {
+public:
+    MI_LGX_FILAMENT_UNLOAD_LENGTH();
+    void Store();
+};
+
+class MI_LGX_ENABLE_EEPROM_SAVE : public WI_ICON_SWITCH_OFF_ON_t {
+    static bool init_index();
+
+public:
+    MI_LGX_ENABLE_EEPROM_SAVE()
+        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _("Enable EEPROM save"), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+    void Store();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
 class MI_SAVE_AND_RETURN : public IWindowMenuItem {
 public:
     MI_SAVE_AND_RETURN();

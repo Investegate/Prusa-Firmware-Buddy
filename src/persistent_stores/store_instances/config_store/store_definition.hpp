@@ -341,6 +341,11 @@ struct CurrentStore
 
     StoreItem<bool, true, ItemFlag::user_interface, journal::hash("Run LEDs")> run_leds;
     StoreItem<bool, false, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Heat Entire Bed")> heat_entire_bed;
+    StoreItem<float, defaults::probe_x_offset_mm, ItemFlag::features | ItemFlag::dev_items, journal::hash("LGX Probe X Offset mm")> probe_x_offset_mm;
+    StoreItem<float, defaults::probe_y_offset_mm, ItemFlag::features | ItemFlag::dev_items, journal::hash("LGX Probe Y Offset mm")> probe_y_offset_mm;
+    StoreItem<uint16_t, defaults::auto_filament_load_length_mm, ItemFlag::features | ItemFlag::dev_items, journal::hash("LGX Auto Filament Load Length mm")> auto_filament_load_length_mm;
+    StoreItem<uint16_t, defaults::filament_unload_length_mm, ItemFlag::features | ItemFlag::dev_items, journal::hash("LGX Filament Unload Length mm")> filament_unload_length_mm;
+    StoreItem<bool, defaults::enable_eeprom_save, ItemFlag::features | ItemFlag::dev_items, journal::hash("LGX Enable EEPROM Save")> enable_eeprom_save;
     StoreItem<bool, false, ItemFlag::user_interface, journal::hash("Touch Enabled")> touch_enabled;
     StoreItem<bool, false, ItemFlag::user_interface | ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Touch Sig Workaround")> touch_sig_workaround;
 

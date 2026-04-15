@@ -23,6 +23,11 @@ void ScreenMenuExperimentalSettings::clicked_return() {
         Item<MI_Z_AXIS_LEN>().Store();
         Item<MI_STEPS_PER_UNIT_E>().Store();
         Item<MI_DIRECTION_E>().Store();
+        Item<MI_LGX_PROBE_X_OFFSET>().Store();
+        Item<MI_LGX_PROBE_Y_OFFSET>().Store();
+        Item<MI_LGX_AUTO_FILAMENT_LOAD_LENGTH>().Store();
+        Item<MI_LGX_FILAMENT_UNLOAD_LENGTH>().Store();
+        Item<MI_LGX_ENABLE_EEPROM_SAVE>().Store();
 
         sys_reset();
     case Response::No:
@@ -74,5 +79,10 @@ bool ExperimentalSettingsValues::operator!=(const ExperimentalSettingsValues &ot
 ExperimentalSettingsValues::ExperimentalSettingsValues(ScreenMenuExperimentalSettings__ &parent)
     : z_len(parent.Item<MI_Z_AXIS_LEN>().GetVal())
     , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal() * ((parent.Item<MI_DIRECTION_E>().get_index() == 1) ? -1 : 1))
+    , probe_x_offset_mm(parent.Item<MI_LGX_PROBE_X_OFFSET>().GetVal())
+    , probe_y_offset_mm(parent.Item<MI_LGX_PROBE_Y_OFFSET>().GetVal())
+    , auto_filament_load_length_mm(parent.Item<MI_LGX_AUTO_FILAMENT_LOAD_LENGTH>().GetVal())
+    , filament_unload_length_mm(parent.Item<MI_LGX_FILAMENT_UNLOAD_LENGTH>().GetVal())
+    , enable_eeprom_save(parent.Item<MI_LGX_ENABLE_EEPROM_SAVE>().get_index())
 
 {}
