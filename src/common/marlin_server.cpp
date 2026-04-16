@@ -42,6 +42,7 @@
 #include <utils/mutex_atomic.hpp>
 #include <feature/safety_timer/safety_timer.hpp>
 #include <feature/stepper_timeout/stepper_timeout.hpp>
+#include <config_store/store_c_api.h>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -1149,6 +1150,11 @@ bool inject(InjectQueueRecord record) {
 
 static void settings_load() {
     (void)settings.reset();
+#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+    char gcode_buffer[48];
+    snprintf(gcode_buffer, sizeof(gcode_buffer), "M851 X%f Y%f", static_cast<double>(get_probe_x_offset_mm()), static_cast<double>(get_probe_y_offset_mm()));
+    GcodeSuite::process_subcommands_now(gcode_buffer);
+#endif
 #if HAS_SHEET_PROFILES()
     probe_offset.z = SteelSheets::GetZOffset();
 #endif

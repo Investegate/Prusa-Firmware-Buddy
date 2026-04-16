@@ -48,6 +48,10 @@ bool has_wrong_y();
 bool has_wrong_z();
 bool has_wrong_e();
 bool get_print_area_based_heating_enabled();
+float get_probe_x_offset_mm();
+float get_probe_y_offset_mm();
+int get_auto_filament_load_length_mm();
+int get_filament_unload_length_mm();
 
 /**
  * @brief function set to read float value from eeprom and round it
@@ -79,6 +83,10 @@ void set_rms_current_ma_x(uint16_t current);
 void set_rms_current_ma_y(uint16_t current);
 void set_rms_current_ma_z(uint16_t current);
 void set_rms_current_ma_e(uint16_t current);
+void set_probe_x_offset_mm(float offset);
+void set_probe_y_offset_mm(float offset);
+void set_auto_filament_load_length_mm(int length);
+void set_filament_unload_length_mm(int length);
 
 #ifdef __cplusplus
 }

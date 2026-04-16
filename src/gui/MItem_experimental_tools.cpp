@@ -6,9 +6,11 @@
 #include "MItem_experimental_tools.hpp"
 #include "WindowMenuSpin.hpp"
 #include "ScreenHandler.hpp"
+#include "marlin_client.hpp"
 #include "string.h" // memcmp
 #include "img_resources.hpp"
 #include <gui/menu_vars.h>
+#include <config_store/store_c_api.h>
 
 #if PRINTER_IS_PRUSA_MK3_5()
 /*****************************************************************************/
@@ -190,6 +192,50 @@ MI_CURRENT_E::MI_CURRENT_E()
 
 void MI_CURRENT_E::Store() {
     set_rms_current_ma_e(GetVal());
+}
+
+static constexpr NumericInputConfig probe_offset_spin_config = {
+    .min_value = -100,
+    .max_value = 100,
+    .unit = Unit::millimeter,
+};
+
+MI_PROBE_X_OFFSET::MI_PROBE_X_OFFSET()
+    : WiSpin(get_probe_x_offset_mm(), probe_offset_spin_config, _("Probe X offset")) {}
+
+void MI_PROBE_X_OFFSET::OnClick() {
+    const float offset = value();
+    set_probe_x_offset_mm(offset);
+    marlin_client::gcode_printf("M851 X%f", static_cast<double>(offset));
+}
+
+MI_PROBE_Y_OFFSET::MI_PROBE_Y_OFFSET()
+    : WiSpin(get_probe_y_offset_mm(), probe_offset_spin_config, _("Probe Y offset")) {}
+
+void MI_PROBE_Y_OFFSET::OnClick() {
+    const float offset = value();
+    set_probe_y_offset_mm(offset);
+    marlin_client::gcode_printf("M851 Y%f", static_cast<double>(offset));
+}
+
+static constexpr NumericInputConfig filament_length_spin_config = {
+    .min_value = 1,
+    .max_value = 1000,
+    .unit = Unit::millimeter,
+};
+
+MI_AUTO_FILAMENT_LOAD_LENGTH::MI_AUTO_FILAMENT_LOAD_LENGTH()
+    : WiSpin(get_auto_filament_load_length_mm(), filament_length_spin_config, _("Auto load length")) {}
+
+void MI_AUTO_FILAMENT_LOAD_LENGTH::OnClick() {
+    set_auto_filament_load_length_mm(value());
+}
+
+MI_FILAMENT_UNLOAD_LENGTH::MI_FILAMENT_UNLOAD_LENGTH()
+    : WiSpin(get_filament_unload_length_mm(), filament_length_spin_config, _("Unload length")) {}
+
+void MI_FILAMENT_UNLOAD_LENGTH::OnClick() {
+    set_filament_unload_length_mm(value());
 }
 
 /*****************************************************************************/

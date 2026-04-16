@@ -33,6 +33,10 @@ using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_CURRENT_Z,
     MI_CURRENT_E,
     MI_RESET_CURRENTS,
+    MI_PROBE_X_OFFSET,
+    MI_PROBE_Y_OFFSET,
+    MI_AUTO_FILAMENT_LOAD_LENGTH,
+    MI_FILAMENT_UNLOAD_LENGTH,
     MI_SERIAL_PRINTING_SCREEN_ENABLE,
     MI_FAST_DRAW_ENABLE>;
 
@@ -52,6 +56,10 @@ struct ExperimentalSettingsValues {
     int32_t rms_current_ma_y;
     int32_t rms_current_ma_z;
     int32_t rms_current_ma_e;
+    float probe_x_offset_mm;
+    float probe_y_offset_mm;
+    int32_t auto_filament_load_length_mm;
+    int32_t filament_unload_length_mm;
 
     // this is only safe as long as there are no gaps between variabes
     // all variables are 32bit now, so it is safe

@@ -244,6 +244,10 @@ struct CurrentStore
     StoreItem<uint32_t, defaults::footer_draw_type, ItemFlag::user_interface, journal::hash("Footer Draw Type")> footer_draw_type;
     StoreItem<bool, true, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Fan Check Enabled")> fan_check_enabled;
     StoreItem<bool, true, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("FS Autoload Enabled")> fs_autoload_enabled;
+    StoreItem<float, defaults::probe_x_offset_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Probe X Offset MM")> probe_x_offset_mm;
+    StoreItem<float, defaults::probe_y_offset_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Probe Y Offset MM")> probe_y_offset_mm;
+    StoreItem<int, defaults::auto_filament_load_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Auto Filament Load Length MM")> auto_filament_load_length_mm;
+    StoreItem<int, defaults::filament_unload_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Filament Unload Length MM")> filament_unload_length_mm;
 
     StoreItem<uint32_t, 0, ItemFlag::stats, journal::hash("Odometer Time")> odometer_time;
     StoreItem<uint8_t, 0, ItemFlag::network, journal::hash("Active NetDev")> active_netdev; // active network device

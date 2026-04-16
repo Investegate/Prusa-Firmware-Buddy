@@ -101,6 +101,22 @@ extern "C" bool get_print_area_based_heating_enabled() {
     return config_store().heat_entire_bed.get() == false;
 }
 
+extern "C" float get_probe_x_offset_mm() {
+    return config_store().probe_x_offset_mm.get();
+}
+
+extern "C" float get_probe_y_offset_mm() {
+    return config_store().probe_y_offset_mm.get();
+}
+
+extern "C" int get_auto_filament_load_length_mm() {
+    return config_store().auto_filament_load_length_mm.get();
+}
+
+extern "C" int get_filament_unload_length_mm() {
+    return config_store().filament_unload_length_mm.get();
+}
+
 #else
 extern "C" bool has_wrong_x() {
     log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
@@ -229,6 +245,22 @@ extern "C" void set_PRUSA_direction_y() { log_error(EEPROM, "called %s while USE
 extern "C" void set_PRUSA_direction_z() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
 extern "C" void set_PRUSA_direction_e() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
 #endif
+
+extern "C" void set_probe_x_offset_mm(const float offset) {
+    config_store().probe_x_offset_mm.set(offset);
+}
+
+extern "C" void set_probe_y_offset_mm(const float offset) {
+    config_store().probe_y_offset_mm.set(offset);
+}
+
+extern "C" void set_auto_filament_load_length_mm(const int length) {
+    config_store().auto_filament_load_length_mm.set(length);
+}
+
+extern "C" void set_filament_unload_length_mm(const int length) {
+    config_store().filament_unload_length_mm.set(length);
+}
 
 /*****************************************************************************/
 // AXIS_MICROSTEPS

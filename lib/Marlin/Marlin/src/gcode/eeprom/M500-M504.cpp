@@ -24,6 +24,7 @@
 #include "../../module/configuration_store.h"
 #include "../../core/serial.h"
 #include "../../inc/MarlinConfig.h"
+#include <config_store/store_c_api.h>
 
 /** \addtogroup G-Codes
  * @{
@@ -53,6 +54,11 @@ void GcodeSuite::M500() {
  */
 void GcodeSuite::M501() {
   (void)settings.load();
+#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+  char gcode_buffer[48];
+  snprintf(gcode_buffer, sizeof(gcode_buffer), "M851 X%f Y%f", static_cast<double>(get_probe_x_offset_mm()), static_cast<double>(get_probe_y_offset_mm()));
+  process_subcommands_now(gcode_buffer);
+#endif
 }
 
 /**

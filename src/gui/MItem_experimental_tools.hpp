@@ -136,6 +136,30 @@ public:
     void Store();
 };
 
+class MI_PROBE_X_OFFSET : public WiSpin {
+public:
+    MI_PROBE_X_OFFSET();
+    void OnClick() override;
+};
+
+class MI_PROBE_Y_OFFSET : public WiSpin {
+public:
+    MI_PROBE_Y_OFFSET();
+    void OnClick() override;
+};
+
+class MI_AUTO_FILAMENT_LOAD_LENGTH : public WiSpin {
+public:
+    MI_AUTO_FILAMENT_LOAD_LENGTH();
+    void OnClick() override;
+};
+
+class MI_FILAMENT_UNLOAD_LENGTH : public WiSpin {
+public:
+    MI_FILAMENT_UNLOAD_LENGTH();
+    void OnClick() override;
+};
+
 class MI_RESET_CURRENTS : public IWindowMenuItem {
 public:
     MI_RESET_CURRENTS();
