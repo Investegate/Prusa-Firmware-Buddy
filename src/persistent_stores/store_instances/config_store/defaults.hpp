@@ -94,6 +94,7 @@ namespace defaults {
     inline constexpr float probe_y_offset_mm { 0.0f };
     inline constexpr int auto_filament_load_length_mm { 45 };
     inline constexpr int filament_unload_length_mm { 45 };
+    inline constexpr bool enable_eeprom_save { false };
 
     inline constexpr bool prusalink_enabled {
 #if PRINTER_IS_PRUSA_iX()

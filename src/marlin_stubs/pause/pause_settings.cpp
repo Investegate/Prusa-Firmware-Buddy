@@ -31,7 +31,7 @@ Settings::Settings()
 }
 
 float Settings::GetDefaultFastLoadLength() {
-    return fc_settings[active_extruder].load_length;
+    return static_cast<float>(get_auto_filament_load_length_mm());
 }
 
 float Settings::GetDefaultSlowLoadLength() {
@@ -39,7 +39,7 @@ float Settings::GetDefaultSlowLoadLength() {
 }
 
 float Settings::GetDefaultUnloadLength() {
-    return fc_settings[active_extruder].unload_length;
+    return static_cast<float>(get_filament_unload_length_mm());
 }
 
 float Settings::GetDefaultPurgeLength(uint8_t extruder) {

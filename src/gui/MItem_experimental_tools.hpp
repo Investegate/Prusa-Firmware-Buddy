@@ -160,6 +160,12 @@ public:
     void OnClick() override;
 };
 
+class MI_ENABLE_EEPROM_SAVE final : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    MI_ENABLE_EEPROM_SAVE();
+    void OnChange(size_t old_index) final;
+};
+
 class MI_RESET_CURRENTS : public IWindowMenuItem {
 public:
     MI_RESET_CURRENTS();

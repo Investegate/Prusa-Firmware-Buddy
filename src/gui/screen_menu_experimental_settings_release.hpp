@@ -25,6 +25,7 @@ using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_PROBE_Y_OFFSET,
     MI_AUTO_FILAMENT_LOAD_LENGTH,
     MI_FILAMENT_UNLOAD_LENGTH,
+    MI_ENABLE_EEPROM_SAVE,
     MI_SERIAL_PRINTING_SCREEN_ENABLE,
     MI_FAST_DRAW_ENABLE>;
 
@@ -37,6 +38,7 @@ struct ExperimentalSettingsValues {
     float probe_y_offset_mm;
     int32_t auto_filament_load_length_mm;
     int32_t filament_unload_length_mm;
+    uint8_t enable_eeprom_save;
     size_t touch_ena;
 
     // this is only safe as long as there are no gaps between variables

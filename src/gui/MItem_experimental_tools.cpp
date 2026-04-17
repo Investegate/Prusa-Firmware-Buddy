@@ -238,6 +238,13 @@ void MI_FILAMENT_UNLOAD_LENGTH::OnClick() {
     set_filament_unload_length_mm(value());
 }
 
+MI_ENABLE_EEPROM_SAVE::MI_ENABLE_EEPROM_SAVE()
+    : WI_ICON_SWITCH_OFF_ON_t(get_enable_eeprom_save(), _("Enable EEPROM save")) {}
+
+void MI_ENABLE_EEPROM_SAVE::OnChange([[maybe_unused]] size_t old_index) {
+    set_enable_eeprom_save(value());
+}
+
 /*****************************************************************************/
 // MI_RESET_CURRENTS
 MI_RESET_CURRENTS::MI_RESET_CURRENTS()

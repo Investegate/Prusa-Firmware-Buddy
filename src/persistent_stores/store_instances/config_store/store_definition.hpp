@@ -248,6 +248,7 @@ struct CurrentStore
     StoreItem<float, defaults::probe_y_offset_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Probe Y Offset MM")> probe_y_offset_mm;
     StoreItem<int, defaults::auto_filament_load_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Auto Filament Load Length MM")> auto_filament_load_length_mm;
     StoreItem<int, defaults::filament_unload_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Filament Unload Length MM")> filament_unload_length_mm;
+    StoreItem<bool, defaults::enable_eeprom_save, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Enable EEPROM Save")> enable_eeprom_save;
 
     StoreItem<uint32_t, 0, ItemFlag::stats, journal::hash("Odometer Time")> odometer_time;
     StoreItem<uint8_t, 0, ItemFlag::network, journal::hash("Active NetDev")> active_netdev; // active network device

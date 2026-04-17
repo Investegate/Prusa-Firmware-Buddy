@@ -117,6 +117,10 @@ extern "C" int get_filament_unload_length_mm() {
     return config_store().filament_unload_length_mm.get();
 }
 
+extern "C" bool get_enable_eeprom_save() {
+    return config_store().enable_eeprom_save.get();
+}
+
 #else
 extern "C" bool has_wrong_x() {
     log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
@@ -260,6 +264,10 @@ extern "C" void set_auto_filament_load_length_mm(const int length) {
 
 extern "C" void set_filament_unload_length_mm(const int length) {
     config_store().filament_unload_length_mm.set(length);
+}
+
+extern "C" void set_enable_eeprom_save(const bool enabled) {
+    config_store().enable_eeprom_save.set(enabled);
 }
 
 /*****************************************************************************/

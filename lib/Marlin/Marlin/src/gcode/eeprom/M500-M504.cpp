@@ -25,6 +25,7 @@
 #include "../../core/serial.h"
 #include "../../inc/MarlinConfig.h"
 #include <config_store/store_c_api.h>
+#include <config_store/store_instance.hpp>
 
 /** \addtogroup G-Codes
  * @{
@@ -41,6 +42,9 @@
  */
 void GcodeSuite::M500() {
   (void)settings.save();
+  if (get_enable_eeprom_save()) {
+    config_store().save_all();
+  }
 }
 
 /**
