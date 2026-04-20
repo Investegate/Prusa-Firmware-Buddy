@@ -1,4 +1,5 @@
 #include "store_c_api.h"
+#include <algorithm>
 #include <bitset>
 #include <config_store/store_instance.hpp>
 #include <logging/log.hpp>
@@ -271,7 +272,7 @@ extern "C" void set_filament_unload_length_mm(const int length) {
 }
 
 extern "C" void set_unload_ramming_scale_percent(const int percent) {
-    config_store().unload_ramming_scale_percent.set(percent);
+    config_store().unload_ramming_scale_percent.set(std::clamp(percent, 10, 150));
 }
 
 extern "C" void set_enable_eeprom_save(const bool enabled) {
