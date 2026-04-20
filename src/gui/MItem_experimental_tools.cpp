@@ -251,6 +251,19 @@ void MI_UNLOAD_RAMMING_SCALE::OnClick() {
     set_unload_ramming_scale_percent(value());
 }
 
+static constexpr NumericInputConfig unload_cooling_retract_spin_config = {
+    .min_value = 0,
+    .max_value = 20,
+    .unit = Unit::millimeter,
+};
+
+MI_UNLOAD_COOLING_RETRACT::MI_UNLOAD_COOLING_RETRACT()
+    : WiSpin(get_unload_cooling_retract_mm(), unload_cooling_retract_spin_config, _("Unload cooling retract")) {}
+
+void MI_UNLOAD_COOLING_RETRACT::OnClick() {
+    set_unload_cooling_retract_mm(value());
+}
+
 MI_ENABLE_EEPROM_SAVE::MI_ENABLE_EEPROM_SAVE()
     : WI_ICON_SWITCH_OFF_ON_t(get_enable_eeprom_save(), _("Enable EEPROM save")) {}
 

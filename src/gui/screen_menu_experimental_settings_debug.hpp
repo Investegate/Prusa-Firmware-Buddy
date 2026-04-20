@@ -38,6 +38,7 @@ using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_AUTO_FILAMENT_LOAD_LENGTH,
     MI_FILAMENT_UNLOAD_LENGTH,
     MI_UNLOAD_RAMMING_SCALE,
+    MI_UNLOAD_COOLING_RETRACT,
     MI_ENABLE_EEPROM_SAVE,
     MI_SERIAL_PRINTING_SCREEN_ENABLE,
     MI_FAST_DRAW_ENABLE>;
@@ -63,6 +64,7 @@ struct ExperimentalSettingsValues {
     int32_t auto_filament_load_length_mm;
     int32_t filament_unload_length_mm;
     int32_t unload_ramming_scale_percent;
+    int32_t unload_cooling_retract_mm;
     uint8_t enable_eeprom_save;
 
     // this is only safe as long as there are no gaps between variabes

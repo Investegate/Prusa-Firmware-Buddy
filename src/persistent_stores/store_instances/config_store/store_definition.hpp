@@ -249,6 +249,7 @@ struct CurrentStore
     StoreItem<int, defaults::auto_filament_load_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Auto Filament Load Length MM")> auto_filament_load_length_mm;
     StoreItem<int, defaults::filament_unload_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Filament Unload Length MM")> filament_unload_length_mm;
     StoreItem<int, defaults::unload_ramming_scale_percent, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Unload Ramming Scale Percent")> unload_ramming_scale_percent;
+    StoreItem<int, defaults::unload_cooling_retract_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Unload Cooling Retract MM")> unload_cooling_retract_mm;
     StoreItem<bool, defaults::enable_eeprom_save, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Enable EEPROM Save")> enable_eeprom_save;
 
     StoreItem<uint32_t, 0, ItemFlag::stats, journal::hash("Odometer Time")> odometer_time;

@@ -122,6 +122,10 @@ extern "C" int get_unload_ramming_scale_percent() {
     return config_store().unload_ramming_scale_percent.get();
 }
 
+extern "C" int get_unload_cooling_retract_mm() {
+    return config_store().unload_cooling_retract_mm.get();
+}
+
 extern "C" bool get_enable_eeprom_save() {
     return config_store().enable_eeprom_save.get();
 }
@@ -273,6 +277,10 @@ extern "C" void set_filament_unload_length_mm(const int length) {
 
 extern "C" void set_unload_ramming_scale_percent(const int percent) {
     config_store().unload_ramming_scale_percent.set(std::clamp(percent, 10, 150));
+}
+
+extern "C" void set_unload_cooling_retract_mm(const int length) {
+    config_store().unload_cooling_retract_mm.set(std::clamp(length, 0, 20));
 }
 
 extern "C" void set_enable_eeprom_save(const bool enabled) {

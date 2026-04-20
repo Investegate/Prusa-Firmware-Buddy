@@ -1581,8 +1581,13 @@ void Pause::unload_filament() {
         planner.apply_settings(s);
     }
 
-    // The ramming that happened before the unload already resulted in some amount of retraction -> subtract that
-    const float remaining_unload_length = std::max<float>(std::abs(settings.unload_length) - ram_retracted_distance, 0);
+    const float unload_cooling_retract_mm = std::max<float>(config_store().unload_cooling_retract_mm.get(), 0);
+    if (unload_cooling_retract_mm > 0) {
+        std::ignore = do_e_move_notify_progress_coldextrude(-unload_cooling_retract_mm, 1.0f, StopConditions::UserStopped);
+    }
+
+    // The ramming/cooling retract that happened before the unload already resulted in some amount of retraction -> subtract that
+    const float remaining_unload_length = std::max<float>(std::abs(settings.unload_length) - ram_retracted_distance - unload_cooling_retract_mm, 0);
 
     // At this point, we are already rammed (so the filament is out of the nozzle), so we do not need to enforce nozzle temp
     std::ignore = do_e_move_notify_progress_coldextrude(-remaining_unload_length, (FILAMENT_CHANGE_UNLOAD_FEEDRATE), StopConditions::UserStopped);

@@ -95,6 +95,7 @@ namespace defaults {
     inline constexpr int auto_filament_load_length_mm { 45 };
     inline constexpr int filament_unload_length_mm { 45 };
     inline constexpr int unload_ramming_scale_percent { 100 };
+    inline constexpr int unload_cooling_retract_mm { 0 };
     inline constexpr bool enable_eeprom_save { false };
 
     inline constexpr bool prusalink_enabled {
