@@ -41,8 +41,8 @@
  *    M500
  */
 void GcodeSuite::M500() {
-  (void)settings.save();
   if (get_enable_eeprom_save()) {
+    (void)settings.save();
     config_store().save_all();
   }
 }

@@ -52,6 +52,7 @@ float get_probe_x_offset_mm();
 float get_probe_y_offset_mm();
 int get_auto_filament_load_length_mm();
 int get_filament_unload_length_mm();
+int get_unload_ramming_scale_percent();
 bool get_enable_eeprom_save();
 
 /**
@@ -88,6 +89,7 @@ void set_probe_x_offset_mm(float offset);
 void set_probe_y_offset_mm(float offset);
 void set_auto_filament_load_length_mm(int length);
 void set_filament_unload_length_mm(int length);
+void set_unload_ramming_scale_percent(int percent);
 void set_enable_eeprom_save(bool enabled);
 
 #ifdef __cplusplus

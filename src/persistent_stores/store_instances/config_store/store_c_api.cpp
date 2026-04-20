@@ -117,6 +117,10 @@ extern "C" int get_filament_unload_length_mm() {
     return config_store().filament_unload_length_mm.get();
 }
 
+extern "C" int get_unload_ramming_scale_percent() {
+    return config_store().unload_ramming_scale_percent.get();
+}
+
 extern "C" bool get_enable_eeprom_save() {
     return config_store().enable_eeprom_save.get();
 }
@@ -264,6 +268,10 @@ extern "C" void set_auto_filament_load_length_mm(const int length) {
 
 extern "C" void set_filament_unload_length_mm(const int length) {
     config_store().filament_unload_length_mm.set(length);
+}
+
+extern "C" void set_unload_ramming_scale_percent(const int percent) {
+    config_store().unload_ramming_scale_percent.set(percent);
 }
 
 extern "C" void set_enable_eeprom_save(const bool enabled) {

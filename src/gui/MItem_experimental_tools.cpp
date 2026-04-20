@@ -238,6 +238,19 @@ void MI_FILAMENT_UNLOAD_LENGTH::OnClick() {
     set_filament_unload_length_mm(value());
 }
 
+static constexpr NumericInputConfig unload_ramming_scale_spin_config = {
+    .min_value = 10,
+    .max_value = 150,
+    .unit = Unit::percent,
+};
+
+MI_UNLOAD_RAMMING_SCALE::MI_UNLOAD_RAMMING_SCALE()
+    : WiSpin(get_unload_ramming_scale_percent(), unload_ramming_scale_spin_config, _("Unload ramming scale")) {}
+
+void MI_UNLOAD_RAMMING_SCALE::OnClick() {
+    set_unload_ramming_scale_percent(value());
+}
+
 MI_ENABLE_EEPROM_SAVE::MI_ENABLE_EEPROM_SAVE()
     : WI_ICON_SWITCH_OFF_ON_t(get_enable_eeprom_save(), _("Enable EEPROM save")) {}
 

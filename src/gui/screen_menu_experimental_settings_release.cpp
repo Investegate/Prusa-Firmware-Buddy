@@ -78,6 +78,7 @@ ExperimentalSettingsValues::ExperimentalSettingsValues(ScreenMenuExperimentalSet
     , probe_y_offset_mm(parent.Item<MI_PROBE_Y_OFFSET>().value())
     , auto_filament_load_length_mm(parent.Item<MI_AUTO_FILAMENT_LOAD_LENGTH>().GetVal())
     , filament_unload_length_mm(parent.Item<MI_FILAMENT_UNLOAD_LENGTH>().GetVal())
+    , unload_ramming_scale_percent(parent.Item<MI_UNLOAD_RAMMING_SCALE>().GetVal())
     , enable_eeprom_save(parent.Item<MI_ENABLE_EEPROM_SAVE>().value())
 
 {}

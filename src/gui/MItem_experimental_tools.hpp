@@ -160,6 +160,12 @@ public:
     void OnClick() override;
 };
 
+class MI_UNLOAD_RAMMING_SCALE : public WiSpin {
+public:
+    MI_UNLOAD_RAMMING_SCALE();
+    void OnClick() override;
+};
+
 class MI_ENABLE_EEPROM_SAVE final : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     MI_ENABLE_EEPROM_SAVE();

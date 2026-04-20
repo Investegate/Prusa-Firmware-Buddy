@@ -50,6 +50,7 @@
 #include <buddy/unreachable.hpp>
 #include <sound.hpp>
 #include <feature/safety_timer/safety_timer.hpp>
+#include <algorithm>
 
 #include <option/has_human_interactions.h>
 #include <option/has_mmu2.h>
@@ -1526,6 +1527,40 @@ bool Pause::ram_filament() {
         break;
 
     default:
+        if (const int scale_percent = std::clamp(config_store().unload_ramming_scale_percent.get(), 10, 150); scale_percent != 100) {
+            constexpr float scale_100 = 100.f;
+
+            auto scaled_step_e = [scale_percent](RammingSequence::EDistance e) -> RammingSequence::EDistance {
+                return static_cast<RammingSequence::EDistance>(std::lround(static_cast<float>(e) * scale_percent / scale_100));
+            };
+
+            uint16_t duration_estimate_ms = 0;
+            ram_retracted_distance = 0;
+            for (const auto &step : unloadRammingSequence.steps()) {
+                const auto scaled_e = scaled_step_e(step.e);
+
+                ram_retracted_distance -= scaled_e;
+                if (ram_retracted_distance < 0) {
+                    ram_retracted_distance = 0;
+                }
+
+                const auto step_duration_estimate = int32_t(scaled_e) * 60'000 / step.fr_mm_min;
+                duration_estimate_ms += (step_duration_estimate < 0) ? -step_duration_estimate : step_duration_estimate;
+            }
+
+            PauseFsmDurationNotifier notifier(*this, duration_estimate_ms);
+            Temporary_Reset_Motion_Parameters mp_guard;
+            for (const auto &step : unloadRammingSequence.steps()) {
+                mapi::extruder_move(scaled_step_e(step.e), MMM_TO_MMS(step.fr_mm_min));
+                if (check_user_stop(getResponse())) {
+                    return false;
+                }
+            }
+
+            planner.synchronize();
+            return !planner.draining();
+        }
+
         ramming_sequence = &unloadRammingSequence;
         break;
     }
