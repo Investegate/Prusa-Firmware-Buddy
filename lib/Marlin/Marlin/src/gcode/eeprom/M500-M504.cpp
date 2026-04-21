@@ -91,7 +91,7 @@ void GcodeSuite::M500() {
  *    M501
  */
 void GcodeSuite::M501() {
-  (void)settings.load();
+  (void)settings.reset();
   if (get_enable_eeprom_save()) {
     auto s = planner.user_settings;
     s.axis_steps_per_mm[X_AXIS] = config_store().axis_steps_per_unit_x.get();
@@ -136,6 +136,7 @@ void GcodeSuite::M501() {
   snprintf(gcode_buffer, sizeof(gcode_buffer), "M851 X%f Y%f", static_cast<double>(get_probe_x_offset_mm()), static_cast<double>(get_probe_y_offset_mm()));
   process_subcommands_now(gcode_buffer);
 #endif
+  (void)settings.report();
 }
 
 /**
