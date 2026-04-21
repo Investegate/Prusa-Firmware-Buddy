@@ -43,7 +43,7 @@
  */
 void GcodeSuite::M500() {
   if (get_enable_eeprom_save()) {
-    auto s = planner.user_settings;
+    const auto &s = planner.settings;
     config_store().axis_steps_per_unit_x.set(s.axis_steps_per_mm[X_AXIS]);
     config_store().axis_steps_per_unit_y.set(s.axis_steps_per_mm[Y_AXIS]);
     config_store().axis_steps_per_unit_z.set(s.axis_steps_per_mm[Z_AXIS]);
