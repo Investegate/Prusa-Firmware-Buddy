@@ -40,6 +40,7 @@ using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_UNLOAD_RAMMING_SCALE,
     MI_UNLOAD_COOLING_RETRACT,
     MI_ENABLE_EEPROM_SAVE,
+    MI_RESET_M500_TUNING,
     MI_SERIAL_PRINTING_SCREEN_ENABLE,
     MI_FAST_DRAW_ENABLE>;
 

@@ -1150,45 +1150,43 @@ bool inject(InjectQueueRecord record) {
 
 static void settings_load() {
     (void)settings.reset();
-    if (get_enable_eeprom_save()) {
-        auto s = planner.user_settings;
-        s.axis_steps_per_mm[X_AXIS] = config_store().axis_steps_per_unit_x.get();
-        s.axis_steps_per_mm[Y_AXIS] = config_store().axis_steps_per_unit_y.get();
-        s.axis_steps_per_mm[Z_AXIS] = config_store().axis_steps_per_unit_z.get();
-        s.axis_steps_per_mm[E_AXIS] = config_store().axis_steps_per_unit_e0.get();
-        LOOP_XYZE_N(i) {
-            s.axis_msteps_per_mm[i] = s.axis_steps_per_mm[i] * PLANNER_STEPS_MULTIPLIER;
-        }
+    auto s = planner.user_settings;
+    s.axis_steps_per_mm[X_AXIS] = config_store().axis_steps_per_unit_x.get();
+    s.axis_steps_per_mm[Y_AXIS] = config_store().axis_steps_per_unit_y.get();
+    s.axis_steps_per_mm[Z_AXIS] = config_store().axis_steps_per_unit_z.get();
+    s.axis_steps_per_mm[E_AXIS] = config_store().axis_steps_per_unit_e0.get();
+    LOOP_XYZE_N(i) {
+        s.axis_msteps_per_mm[i] = s.axis_steps_per_mm[i] * PLANNER_STEPS_MULTIPLIER;
+    }
 
-        s.max_feedrate_mm_s[X_AXIS] = config_store().marlin_max_feedrate_x.get();
-        s.max_feedrate_mm_s[Y_AXIS] = config_store().marlin_max_feedrate_y.get();
-        s.max_feedrate_mm_s[Z_AXIS] = config_store().marlin_max_feedrate_z.get();
-        s.max_feedrate_mm_s[E_AXIS] = config_store().marlin_max_feedrate_e0.get();
+    s.max_feedrate_mm_s[X_AXIS] = config_store().marlin_max_feedrate_x.get();
+    s.max_feedrate_mm_s[Y_AXIS] = config_store().marlin_max_feedrate_y.get();
+    s.max_feedrate_mm_s[Z_AXIS] = config_store().marlin_max_feedrate_z.get();
+    s.max_feedrate_mm_s[E_AXIS] = config_store().marlin_max_feedrate_e0.get();
 
-        s.max_acceleration_mm_per_s2[X_AXIS] = config_store().marlin_max_acceleration_x.get();
-        s.max_acceleration_mm_per_s2[Y_AXIS] = config_store().marlin_max_acceleration_y.get();
-        s.max_acceleration_mm_per_s2[Z_AXIS] = config_store().marlin_max_acceleration_z.get();
-        s.max_acceleration_mm_per_s2[E_AXIS] = config_store().marlin_max_acceleration_e0.get();
+    s.max_acceleration_mm_per_s2[X_AXIS] = config_store().marlin_max_acceleration_x.get();
+    s.max_acceleration_mm_per_s2[Y_AXIS] = config_store().marlin_max_acceleration_y.get();
+    s.max_acceleration_mm_per_s2[Z_AXIS] = config_store().marlin_max_acceleration_z.get();
+    s.max_acceleration_mm_per_s2[E_AXIS] = config_store().marlin_max_acceleration_e0.get();
 
-        s.min_segment_time_us = config_store().marlin_min_segment_time_us.get();
-        s.acceleration = config_store().marlin_acceleration.get();
-        s.retract_acceleration = config_store().marlin_retract_acceleration.get();
-        s.travel_acceleration = config_store().marlin_travel_acceleration.get();
-        s.min_feedrate_mm_s = config_store().marlin_min_feedrate.get();
-        s.min_travel_feedrate_mm_s = config_store().marlin_min_travel_feedrate.get();
+    s.min_segment_time_us = config_store().marlin_min_segment_time_us.get();
+    s.acceleration = config_store().marlin_acceleration.get();
+    s.retract_acceleration = config_store().marlin_retract_acceleration.get();
+    s.travel_acceleration = config_store().marlin_travel_acceleration.get();
+    s.min_feedrate_mm_s = config_store().marlin_min_feedrate.get();
+    s.min_travel_feedrate_mm_s = config_store().marlin_min_travel_feedrate.get();
 #if HAS_CLASSIC_JERK
-        s.max_jerk.x = config_store().marlin_max_jerk_x.get();
-        s.max_jerk.y = config_store().marlin_max_jerk_y.get();
-        s.max_jerk.z = config_store().marlin_max_jerk_z.get();
+    s.max_jerk.x = config_store().marlin_max_jerk_x.get();
+    s.max_jerk.y = config_store().marlin_max_jerk_y.get();
+    s.max_jerk.z = config_store().marlin_max_jerk_z.get();
 #if !HAS_LINEAR_E_JERK
-        s.max_jerk.e = config_store().marlin_max_jerk_e.get();
+    s.max_jerk.e = config_store().marlin_max_jerk_e.get();
 #endif
 #else
-        planner.junction_deviation_mm = config_store().marlin_junction_deviation_mm.get();
+    planner.junction_deviation_mm = config_store().marlin_junction_deviation_mm.get();
 #endif
-        planner.apply_settings(s);
-        planner.refresh_positioning();
-    }
+    planner.apply_settings(s);
+    planner.refresh_positioning();
 #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
     char gcode_buffer[48];
     snprintf(gcode_buffer, sizeof(gcode_buffer), "M851 X%f Y%f", static_cast<double>(get_probe_x_offset_mm()), static_cast<double>(get_probe_y_offset_mm()));

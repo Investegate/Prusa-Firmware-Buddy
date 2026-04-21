@@ -178,6 +178,14 @@ public:
     void OnChange(size_t old_index) final;
 };
 
+class MI_RESET_M500_TUNING : public IWindowMenuItem {
+public:
+    MI_RESET_M500_TUNING();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_RESET_CURRENTS : public IWindowMenuItem {
 public:
     MI_RESET_CURRENTS();

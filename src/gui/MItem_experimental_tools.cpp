@@ -11,6 +11,7 @@
 #include "img_resources.hpp"
 #include <gui/menu_vars.h>
 #include <config_store/store_c_api.h>
+#include <config_store/store_instance.hpp>
 
 #if PRINTER_IS_PRUSA_MK3_5()
 /*****************************************************************************/
@@ -269,6 +270,41 @@ MI_ENABLE_EEPROM_SAVE::MI_ENABLE_EEPROM_SAVE()
 
 void MI_ENABLE_EEPROM_SAVE::OnChange([[maybe_unused]] size_t old_index) {
     set_enable_eeprom_save(value());
+}
+
+MI_RESET_M500_TUNING::MI_RESET_M500_TUNING()
+    : IWindowMenuItem(_("Reset M500 tuning")) {}
+
+void MI_RESET_M500_TUNING::click([[maybe_unused]] IWindowMenu &window_menu) {
+    config_store().axis_steps_per_unit_x.set(config_store().axis_steps_per_unit_x.default_val);
+    config_store().axis_steps_per_unit_y.set(config_store().axis_steps_per_unit_y.default_val);
+    config_store().axis_steps_per_unit_z.set(config_store().axis_steps_per_unit_z.default_val);
+    config_store().marlin_max_feedrate_x.set(config_store().marlin_max_feedrate_x.default_val);
+    config_store().marlin_max_feedrate_y.set(config_store().marlin_max_feedrate_y.default_val);
+    config_store().marlin_max_feedrate_z.set(config_store().marlin_max_feedrate_z.default_val);
+    config_store().marlin_max_feedrate_e0.set(config_store().marlin_max_feedrate_e0.default_val);
+    config_store().marlin_max_acceleration_x.set(config_store().marlin_max_acceleration_x.default_val);
+    config_store().marlin_max_acceleration_y.set(config_store().marlin_max_acceleration_y.default_val);
+    config_store().marlin_max_acceleration_z.set(config_store().marlin_max_acceleration_z.default_val);
+    config_store().marlin_max_acceleration_e0.set(config_store().marlin_max_acceleration_e0.default_val);
+    config_store().marlin_min_segment_time_us.set(config_store().marlin_min_segment_time_us.default_val);
+    config_store().marlin_acceleration.set(config_store().marlin_acceleration.default_val);
+    config_store().marlin_retract_acceleration.set(config_store().marlin_retract_acceleration.default_val);
+    config_store().marlin_travel_acceleration.set(config_store().marlin_travel_acceleration.default_val);
+    config_store().marlin_min_feedrate.set(config_store().marlin_min_feedrate.default_val);
+    config_store().marlin_min_travel_feedrate.set(config_store().marlin_min_travel_feedrate.default_val);
+#if HAS_CLASSIC_JERK
+    config_store().marlin_max_jerk_x.set(config_store().marlin_max_jerk_x.default_val);
+    config_store().marlin_max_jerk_y.set(config_store().marlin_max_jerk_y.default_val);
+    config_store().marlin_max_jerk_z.set(config_store().marlin_max_jerk_z.default_val);
+#if !HAS_LINEAR_E_JERK
+    config_store().marlin_max_jerk_e.set(config_store().marlin_max_jerk_e.default_val);
+#endif
+#else
+    config_store().marlin_junction_deviation_mm.set(config_store().marlin_junction_deviation_mm.default_val);
+#endif
+    config_store().save_all();
+    marlin_client::gcode("M501");
 }
 
 /*****************************************************************************/
