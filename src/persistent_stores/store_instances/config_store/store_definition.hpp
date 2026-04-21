@@ -558,6 +558,30 @@ struct CurrentStore
     StoreItem<float, defaults::axis_steps_per_unit_y, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Steps Per Unit Y")> axis_steps_per_unit_y;
     StoreItem<float, defaults::axis_steps_per_unit_z, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Steps Per Unit Z")> axis_steps_per_unit_z;
     StoreItem<float, defaults::axis_steps_per_unit_e0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Steps Per Unit E0")> axis_steps_per_unit_e0;
+    StoreItem<float, defaults::max_feedrate_x, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Feedrate X")> marlin_max_feedrate_x;
+    StoreItem<float, defaults::max_feedrate_y, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Feedrate Y")> marlin_max_feedrate_y;
+    StoreItem<float, defaults::max_feedrate_z, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Feedrate Z")> marlin_max_feedrate_z;
+    StoreItem<float, defaults::max_feedrate_e0, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Feedrate E0")> marlin_max_feedrate_e0;
+    StoreItem<uint32_t, defaults::max_acceleration_x, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Acceleration X")> marlin_max_acceleration_x;
+    StoreItem<uint32_t, defaults::max_acceleration_y, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Acceleration Y")> marlin_max_acceleration_y;
+    StoreItem<uint32_t, defaults::max_acceleration_z, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Acceleration Z")> marlin_max_acceleration_z;
+    StoreItem<uint32_t, defaults::max_acceleration_e0, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Acceleration E0")> marlin_max_acceleration_e0;
+    StoreItem<uint32_t, defaults::min_segment_time_us, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Min Segment Time US")> marlin_min_segment_time_us;
+    StoreItem<float, defaults::acceleration, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Acceleration")> marlin_acceleration;
+    StoreItem<float, defaults::retract_acceleration, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Retract Acceleration")> marlin_retract_acceleration;
+    StoreItem<float, defaults::travel_acceleration, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Travel Acceleration")> marlin_travel_acceleration;
+    StoreItem<float, defaults::min_feedrate, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Min Feedrate")> marlin_min_feedrate;
+    StoreItem<float, defaults::min_travel_feedrate, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Min Travel Feedrate")> marlin_min_travel_feedrate;
+#if HAS_CLASSIC_JERK
+    StoreItem<float, defaults::max_jerk_x, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Jerk X")> marlin_max_jerk_x;
+    StoreItem<float, defaults::max_jerk_y, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Jerk Y")> marlin_max_jerk_y;
+    StoreItem<float, defaults::max_jerk_z, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Jerk Z")> marlin_max_jerk_z;
+#if !HAS_LINEAR_E_JERK
+    StoreItem<float, defaults::max_jerk_e0, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Max Jerk E")> marlin_max_jerk_e;
+#endif
+#else
+    StoreItem<float, defaults::junction_deviation_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Marlin Junction Deviation MM")> marlin_junction_deviation_mm;
+#endif
     StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps X")> axis_microsteps_X_; // 0 - default value, !=0 - user value
     StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps Y")> axis_microsteps_Y_; // 0 - default value, !=0 - user value
     StoreItem<uint16_t, defaults::axis_microsteps_Z_, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps Z")> axis_microsteps_Z_;

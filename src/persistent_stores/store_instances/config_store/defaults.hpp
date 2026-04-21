@@ -245,10 +245,34 @@ namespace defaults {
     inline constexpr Sheet sheet_7 { "Custom4", z_offset_uncalibrated };
 
     inline constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
+    inline constexpr float default_max_feedrate_flt[4] = DEFAULT_MAX_FEEDRATE;
+    inline constexpr uint32_t default_max_acceleration_u32[4] = DEFAULT_MAX_ACCELERATION;
     inline constexpr float axis_steps_per_unit_x { default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f) };
     inline constexpr float axis_steps_per_unit_y { default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f) };
     inline constexpr float axis_steps_per_unit_z { default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f) };
     inline constexpr float axis_steps_per_unit_e0 { default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f) };
+    inline constexpr float max_feedrate_x { default_max_feedrate_flt[0] };
+    inline constexpr float max_feedrate_y { default_max_feedrate_flt[1] };
+    inline constexpr float max_feedrate_z { default_max_feedrate_flt[2] };
+    inline constexpr float max_feedrate_e0 { default_max_feedrate_flt[3] };
+    inline constexpr uint32_t max_acceleration_x { default_max_acceleration_u32[0] };
+    inline constexpr uint32_t max_acceleration_y { default_max_acceleration_u32[1] };
+    inline constexpr uint32_t max_acceleration_z { default_max_acceleration_u32[2] };
+    inline constexpr uint32_t max_acceleration_e0 { default_max_acceleration_u32[3] };
+    inline constexpr uint32_t min_segment_time_us { DEFAULT_MINSEGMENTTIME };
+    inline constexpr float acceleration { DEFAULT_ACCELERATION };
+    inline constexpr float retract_acceleration { DEFAULT_RETRACT_ACCELERATION };
+    inline constexpr float travel_acceleration { DEFAULT_TRAVEL_ACCELERATION };
+    inline constexpr float min_feedrate { DEFAULT_MINIMUMFEEDRATE };
+    inline constexpr float min_travel_feedrate { DEFAULT_MINTRAVELFEEDRATE };
+#if HAS_CLASSIC_JERK
+    inline constexpr float max_jerk_x { DEFAULT_XJERK };
+    inline constexpr float max_jerk_y { DEFAULT_YJERK };
+    inline constexpr float max_jerk_z { DEFAULT_ZJERK };
+    inline constexpr float max_jerk_e0 { DEFAULT_EJERK };
+#else
+    inline constexpr float junction_deviation_mm { JUNCTION_DEVIATION_MM };
+#endif
     inline constexpr uint16_t axis_microsteps_Z_ { Z_MICROSTEPS };
     inline constexpr uint16_t axis_microsteps_E0_ { E0_MICROSTEPS };
     inline constexpr uint16_t axis_rms_current_ma_Z_ { Z_CURRENT };
