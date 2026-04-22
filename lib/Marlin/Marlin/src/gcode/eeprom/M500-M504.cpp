@@ -25,6 +25,7 @@
 #include "../../core/serial.h"
 #include "../../inc/MarlinConfig.h"
 #include "../../module/planner.h"
+#include <cmath>
 #include <config_store/store_c_api.h>
 #include <config_store/store_instance.hpp>
 
@@ -91,12 +92,13 @@ void GcodeSuite::M500() {
  *    M501
  */
 void GcodeSuite::M501() {
+  const auto saved_probe_offset = probe_offset;
   (void)settings.reset();
   auto s = planner.user_settings;
-  s.axis_steps_per_mm[X_AXIS] = config_store().axis_steps_per_unit_x.get();
-  s.axis_steps_per_mm[Y_AXIS] = config_store().axis_steps_per_unit_y.get();
-  s.axis_steps_per_mm[Z_AXIS] = config_store().axis_steps_per_unit_z.get();
-  s.axis_steps_per_mm[E_AXIS] = config_store().axis_steps_per_unit_e0.get();
+  s.axis_steps_per_mm[X_AXIS] = std::abs(config_store().axis_steps_per_unit_x.get());
+  s.axis_steps_per_mm[Y_AXIS] = std::abs(config_store().axis_steps_per_unit_y.get());
+  s.axis_steps_per_mm[Z_AXIS] = std::abs(config_store().axis_steps_per_unit_z.get());
+  s.axis_steps_per_mm[E_AXIS] = std::abs(config_store().axis_steps_per_unit_e0.get());
   LOOP_XYZE_N(i) {
     s.axis_msteps_per_mm[i] = s.axis_steps_per_mm[i] * PLANNER_STEPS_MULTIPLIER;
   }
@@ -130,9 +132,11 @@ void GcodeSuite::M501() {
   planner.apply_settings(s);
   planner.refresh_positioning();
 #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
-  char gcode_buffer[48];
-  snprintf(gcode_buffer, sizeof(gcode_buffer), "M851 X%f Y%f", static_cast<double>(get_probe_x_offset_mm()), static_cast<double>(get_probe_y_offset_mm()));
+  char gcode_buffer[64];
+  snprintf(gcode_buffer, sizeof(gcode_buffer), "M851 X%f Y%f Z%f", static_cast<double>(saved_probe_offset.x), static_cast<double>(saved_probe_offset.y), static_cast<double>(saved_probe_offset.z));
   process_subcommands_now(gcode_buffer);
+#else
+  probe_offset = saved_probe_offset;
 #endif
   (void)settings.report();
 }

@@ -193,6 +193,7 @@
 #endif
 
 #include <feature/print_status_message/print_status_message_mgr.hpp>
+#include <cmath>
 
 #if HAS_NOZZLE_CLEANER()
     #include <nozzle_cleaner.hpp>
@@ -1151,10 +1152,10 @@ bool inject(InjectQueueRecord record) {
 static void settings_load() {
     (void)settings.reset();
     auto s = planner.user_settings;
-    s.axis_steps_per_mm[X_AXIS] = config_store().axis_steps_per_unit_x.get();
-    s.axis_steps_per_mm[Y_AXIS] = config_store().axis_steps_per_unit_y.get();
-    s.axis_steps_per_mm[Z_AXIS] = config_store().axis_steps_per_unit_z.get();
-    s.axis_steps_per_mm[E_AXIS] = config_store().axis_steps_per_unit_e0.get();
+    s.axis_steps_per_mm[X_AXIS] = std::abs(config_store().axis_steps_per_unit_x.get());
+    s.axis_steps_per_mm[Y_AXIS] = std::abs(config_store().axis_steps_per_unit_y.get());
+    s.axis_steps_per_mm[Z_AXIS] = std::abs(config_store().axis_steps_per_unit_z.get());
+    s.axis_steps_per_mm[E_AXIS] = std::abs(config_store().axis_steps_per_unit_e0.get());
     LOOP_XYZE_N(i) {
         s.axis_msteps_per_mm[i] = s.axis_steps_per_mm[i] * PLANNER_STEPS_MULTIPLIER;
     }
