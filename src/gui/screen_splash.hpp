@@ -12,6 +12,7 @@ class ScreenSplash : public screen_t {
     WindowRoundedProgressBar progress;
 
     char text_progress_buffer[64];
+    bool show_custom_firmware_text = false;
 
 public:
     ScreenSplash();

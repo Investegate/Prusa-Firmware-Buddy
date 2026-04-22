@@ -77,20 +77,23 @@ ScreenSplash::ScreenSplash()
     , progress(this, Rect16(SPLASHSCREEN_PROGRESSBAR_X, SPLASHSCREEN_PROGRESSBAR_Y, SPLASHSCREEN_PROGRESSBAR_W, SPLASHSCREEN_PROGRESSBAR_H), COLOR_BRAND, COLOR_GRAY, 6) {
     ClrMenuTimeoutClose();
 
-    text_progress.set_font(Font::normal);
+    text_progress.set_font(Font::small);
     text_progress.SetAlignment(Align_t::Center());
     text_progress.SetTextColor(COLOR_GRAY);
 
     snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Custom Firmware %s %s", version::project_version, version::project_version_suffix_short);
     text_progress.SetText(string_view_utf8::MakeRAM(text_progress_buffer));
-    text_mod_version.set_font(Font::normal);
+    text_mod_version.set_font(Font::small);
     text_mod_version.SetAlignment(Align_t::Center());
     text_mod_version.SetTextColor(COLOR_GRAY);
     text_mod_version.SetText(string_view_utf8::MakeCPUFLASH("Mod Version 1.0"));
-    text_author.set_font(Font::normal);
+    text_author.set_font(Font::small);
     text_author.SetAlignment(Align_t::Center());
     text_author.SetTextColor(COLOR_ORANGE);
     text_author.SetText(string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line));
+    text_progress.Hide();
+    text_mod_version.Hide();
+    text_author.Hide();
     progress.set_progress_percent(50);
 
 #if ENABLED(POWER_PANIC)
@@ -331,6 +334,20 @@ void ScreenSplash::draw() {
 void ScreenSplash::windowEvent(window_t *, GUI_event_t event, void *) {
     if (event == GUI_event_t::LOOP) {
         const auto bootstrap_state = buddy::bootstrap_state_get();
+        const bool should_show_custom_text = bootstrap_state.stage != BootstrapStage::initial;
+        if (should_show_custom_text != show_custom_firmware_text) {
+            show_custom_firmware_text = should_show_custom_text;
+            if (show_custom_firmware_text) {
+                display::fill_rect(Rect16(0, SPLASHSCREEN_VERSION_Y + 4, GuiDefaults::ScreenWidth, 66), COLOR_BLACK);
+                text_progress.Show();
+                text_mod_version.Show();
+                text_author.Show();
+            } else {
+                text_progress.Hide();
+                text_mod_version.Hide();
+                text_author.Hide();
+            }
+        }
         // FW Splash screen starts from progress bar on 50 %
         const uint8_t progress_percent = bootstrap_state.stage == BootstrapStage::initial ? 50 : 50 + progress_mapper.update_progress(bootstrap_state.stage, static_cast<float>(bootstrap_state.percent) / 100.f) / 2;
         progress.set_progress_percent(progress_percent);
