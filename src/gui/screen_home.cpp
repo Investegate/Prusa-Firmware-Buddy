@@ -233,7 +233,7 @@ screen_home_data_t::screen_home_data_t()
         sb.append_string(" ");
 #endif
         sb.append_string(version::project_version);
-        sb.append_string(version::project_version_suffix_short);
+        sb.append_string(" Mod v1.0");
 #if DEVELOPER_MODE()
         sb.append_string(" DEV");
 #endif

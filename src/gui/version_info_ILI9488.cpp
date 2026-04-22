@@ -31,7 +31,13 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
         Item<MI_INFO_SERIAL_NUM>().ChangeInformation(sb.str());
     }
 
-    Item<MI_INFO_FW>().ChangeInformation(version::project_version_full);
+    {
+        ArrayStringBuilder<48> fw_version_ui;
+        fw_version_ui.append_string(version::project_version);
+        fw_version_ui.append_string(version::project_version_suffix_short);
+        fw_version_ui.append_string(" Mod v1.0");
+        Item<MI_INFO_FW>().ChangeInformation(fw_version_ui.str());
+    }
 
     {
         ArrayStringBuilder<12> sb;

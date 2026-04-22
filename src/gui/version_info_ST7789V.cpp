@@ -8,6 +8,7 @@
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.hpp"
 #include "img_resources.hpp"
+#include <utils/string_builder.hpp>
 
 uint16_t ScreenMenuVersionInfo::get_help_h() {
     return helper_lines * (height(helper_font) + 1); // +1 for line paddings
@@ -39,9 +40,14 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
         begin += snprintf(begin, end - begin, fmt);
     }
 
+    ArrayStringBuilder<48> fw_version_ui;
+    fw_version_ui.append_string(version::project_version);
+    fw_version_ui.append_string(version::project_version_suffix_short);
+    fw_version_ui.append_string(" Mod v1.0");
+
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
-    int project_version_full_len = strlen(version::project_version_full);
+    int project_version_full_len = strlen(fw_version_ui.str());
 
     for (int i = 0; i < project_version_full_len; i += max_chars_per_line) {
         int line_length;
@@ -51,7 +57,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
             line_length = max_chars_per_line;
         }
         if (end > begin) {
-            begin += snprintf(begin, end - begin, "%.*s\n", line_length, version::project_version_full + i);
+            begin += snprintf(begin, end - begin, "%.*s\n", line_length, fw_version_ui.str() + i);
         }
     }
 
