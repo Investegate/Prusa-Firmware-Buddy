@@ -15,6 +15,7 @@
 #include <sys/unistd.h>
 #include <wui_api.h>
 #include <version/version.hpp>
+#include "custom_firmware_ui.hpp"
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -233,7 +234,7 @@ screen_home_data_t::screen_home_data_t()
         sb.append_string(" ");
 #endif
         sb.append_string(version::project_version);
-        sb.append_string(" Mod v1.0");
+        sb.append_string(custom_firmware_ui::mod_version_prefixed);
 #if DEVELOPER_MODE()
         sb.append_string(" DEV");
 #endif

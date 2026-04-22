@@ -461,6 +461,10 @@ MI_INFO_FW::MI_INFO_FW()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
+MI_INFO_CUSTOM_FW::MI_INFO_CUSTOM_FW()
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
 MI_INFO_BOOTLOADER::MI_INFO_BOOTLOADER()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }

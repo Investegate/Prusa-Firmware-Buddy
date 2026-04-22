@@ -8,6 +8,7 @@
 #include "../common/otp.hpp"
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include <utils/string_builder.hpp>
+#include "custom_firmware_ui.hpp"
 
 #include <option/bootloader.h>
 #include <option/has_mmu2.h>
@@ -35,8 +36,17 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
         ArrayStringBuilder<48> fw_version_ui;
         fw_version_ui.append_string(version::project_version);
         fw_version_ui.append_string(version::project_version_suffix_short);
-        fw_version_ui.append_string(" Mod v1.0");
+        fw_version_ui.append_string(custom_firmware_ui::mod_version_prefixed);
         Item<MI_INFO_FW>().ChangeInformation(fw_version_ui.str());
+    }
+    {
+        ArrayStringBuilder<96> custom_fw_info;
+        custom_fw_info.append_string(custom_firmware_ui::firmware_name);
+        custom_fw_info.append_string(" ");
+        custom_fw_info.append_string(custom_firmware_ui::firmware_author_line);
+        custom_fw_info.append_string(" ");
+        custom_fw_info.append_string(custom_firmware_ui::mod_version);
+        Item<MI_INFO_CUSTOM_FW>().ChangeInformation(custom_fw_info.str());
     }
 
     {

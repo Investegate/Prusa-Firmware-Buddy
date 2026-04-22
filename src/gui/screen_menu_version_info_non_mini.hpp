@@ -14,7 +14,7 @@
 #include "MItem_tools.hpp"
 #include <guiconfig/GuiDefaults.hpp>
 
-using ScreenMenuVersionInfo__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_INFO_FW, MI_INFO_BOOTLOADER, MI_INFO_MMU, MI_INFO_BOARD, MI_INFO_SERIAL_NUM,
+using ScreenMenuVersionInfo__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_INFO_FW, MI_INFO_CUSTOM_FW, MI_INFO_BOOTLOADER, MI_INFO_MMU, MI_INFO_BOARD, MI_INFO_SERIAL_NUM,
 #if HAS_LOVE_BOARD()
     MI_INFO_SERIAL_NUM_LOVEBOARD,
 #endif

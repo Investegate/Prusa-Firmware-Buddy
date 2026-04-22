@@ -9,6 +9,7 @@
 #include "../common/otp.hpp"
 #include "img_resources.hpp"
 #include <utils/string_builder.hpp>
+#include "custom_firmware_ui.hpp"
 
 uint16_t ScreenMenuVersionInfo::get_help_h() {
     return helper_lines * (height(helper_font) + 1); // +1 for line paddings
@@ -43,7 +44,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     ArrayStringBuilder<48> fw_version_ui;
     fw_version_ui.append_string(version::project_version);
     fw_version_ui.append_string(version::project_version_suffix_short);
-    fw_version_ui.append_string(" Mod v1.0");
+    fw_version_ui.append_string(custom_firmware_ui::mod_version_prefixed);
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
@@ -64,9 +65,12 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     if (end > begin) {
         // c=20 r=4
         char fmt[20 * 4];
-        _("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d\n%s").copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+        _("\nCustom Firmware\n%s\n%s\n%s\n\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d\n%s").copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
         begin += snprintf(begin, end - begin,
             fmt,
+            custom_firmware_ui::firmware_name,
+            custom_firmware_ui::firmware_author_line,
+            custom_firmware_ui::mod_version,
             bootloader->major, bootloader->minor, bootloader->patch,
             otp_get_board_revision().value_or(0),
             serial_nr.data());

@@ -229,6 +229,13 @@ public:
     MI_INFO_FW();
 };
 
+class MI_INFO_CUSTOM_FW : public WI_INFO_t {
+    static constexpr const char *const label = N_("Custom Firmware");
+
+public:
+    MI_INFO_CUSTOM_FW();
+};
+
 class MI_INFO_BOOTLOADER : public WI_INFO_t {
     static constexpr const char *const label = N_("Bootloader Version");
 
