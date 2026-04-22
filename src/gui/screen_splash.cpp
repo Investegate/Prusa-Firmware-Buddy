@@ -71,9 +71,9 @@ using buddy::BootstrapStage;
 
 ScreenSplash::ScreenSplash()
     : screen_t()
-    , text_progress(this, Rect16(0, SPLASHSCREEN_VERSION_Y + 6, GuiDefaults::ScreenWidth, 20), is_multiline::no)
-    , text_mod_version(this, Rect16(0, SPLASHSCREEN_VERSION_Y + 25, GuiDefaults::ScreenWidth, 20), is_multiline::no)
-    , text_author(this, Rect16(0, SPLASHSCREEN_VERSION_Y + 44, GuiDefaults::ScreenWidth, 20), is_multiline::no)
+    , text_progress(this, Rect16(0, SPLASHSCREEN_VERSION_Y, GuiDefaults::ScreenWidth, 20), is_multiline::no)
+    , text_mod_version(this, Rect16(0, SPLASHSCREEN_VERSION_Y + 19, GuiDefaults::ScreenWidth, 20), is_multiline::no)
+    , text_author(this, Rect16(0, SPLASHSCREEN_VERSION_Y + 38, GuiDefaults::ScreenWidth, 20), is_multiline::no)
     , progress(this, Rect16(SPLASHSCREEN_PROGRESSBAR_X, SPLASHSCREEN_PROGRESSBAR_Y, SPLASHSCREEN_PROGRESSBAR_W, SPLASHSCREEN_PROGRESSBAR_H), COLOR_BRAND, COLOR_GRAY, 6) {
     ClrMenuTimeoutClose();
 
@@ -82,7 +82,6 @@ ScreenSplash::ScreenSplash()
     text_progress.SetTextColor(COLOR_GRAY);
 
     snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Custom Firmware %s %s", version::project_version, version::project_version_suffix_short);
-    text_progress.SetText(string_view_utf8::MakeRAM(text_progress_buffer));
     text_mod_version.set_font(Font::small);
     text_mod_version.SetAlignment(Align_t::Center());
     text_mod_version.SetTextColor(COLOR_GRAY);
@@ -336,7 +335,7 @@ void ScreenSplash::windowEvent(window_t *, GUI_event_t event, void *) {
         const auto bootstrap_state = buddy::bootstrap_state_get();
         if (!show_custom_firmware_text) {
             show_custom_firmware_text = true;
-            display::fill_rect(Rect16(0, SPLASHSCREEN_VERSION_Y + 4, GuiDefaults::ScreenWidth, 66), COLOR_BLACK);
+            text_progress.SetText(string_view_utf8::MakeRAM(text_progress_buffer));
             text_progress.Show();
             text_mod_version.Show();
             text_author.Show();
