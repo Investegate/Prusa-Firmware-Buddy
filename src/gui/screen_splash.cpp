@@ -50,6 +50,7 @@
 
 #include "display.hpp"
 #include <option/has_switched_fan_test.h>
+#include "custom_firmware_ui.hpp"
 
 #if HAS_MINI_DISPLAY()
     #define SPLASHSCREEN_PROGRESSBAR_X 16
@@ -78,7 +79,7 @@ ScreenSplash::ScreenSplash()
     text_progress.SetAlignment(Align_t::Center());
     text_progress.SetTextColor(COLOR_GRAY);
 
-    snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s", version::project_version_full);
+    snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s%s", version::project_version, custom_firmware_ui::mod_version_prefixed);
     text_progress.SetText(string_view_utf8::MakeRAM(text_progress_buffer));
     progress.set_progress_percent(50);
 
@@ -370,6 +371,15 @@ void ScreenSplash::draw() {
     progress.Invalidate();
     text_progress.Invalidate();
     screen_t::draw(); // We want to draw over bootloader's screen without flickering/redrawing
+
+#if HAS_MINI_DISPLAY()
+    display::draw_text(Rect16(0, 38, GuiDefaults::ScreenWidth, 14), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_name), Font::small, COLOR_WHITE, COLOR_BLACK);
+    display::draw_text(Rect16(0, 52, GuiDefaults::ScreenWidth, 14), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line), Font::small, COLOR_WHITE, COLOR_BLACK);
+#endif
+#if HAS_LARGE_DISPLAY()
+    display::draw_text(Rect16(0, 42, GuiDefaults::ScreenWidth, 22), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_name), Font::normal, COLOR_WHITE, COLOR_BLACK);
+    display::draw_text(Rect16(0, 66, GuiDefaults::ScreenWidth, 18), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line), Font::small, COLOR_WHITE, COLOR_BLACK);
+#endif
 #ifdef _DEBUG
     #if HAS_MINI_DISPLAY()
     display::draw_text(Rect16(180, 91, 60, 16), string_view_utf8::MakeCPUFLASH("DEBUG"), Font::small, COLOR_BLACK, COLOR_RED);
