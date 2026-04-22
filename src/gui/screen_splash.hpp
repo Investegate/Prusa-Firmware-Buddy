@@ -7,6 +7,8 @@
 
 class ScreenSplash : public screen_t {
     window_text_t text_progress;
+    window_text_t text_mod_version;
+    window_text_t text_author;
     WindowRoundedProgressBar progress;
 
     char text_progress_buffer[64];

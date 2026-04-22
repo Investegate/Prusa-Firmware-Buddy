@@ -49,7 +49,6 @@
 #endif
 
 #include "display.hpp"
-#include <display_helper.h>
 #include <option/has_switched_fan_test.h>
 #include "custom_firmware_ui.hpp"
 
@@ -73,6 +72,8 @@ using buddy::BootstrapStage;
 ScreenSplash::ScreenSplash()
     : screen_t()
     , text_progress(this, Rect16(0, SPLASHSCREEN_VERSION_Y, GuiDefaults::ScreenWidth, 18), is_multiline::no)
+    , text_mod_version(this, Rect16(0, SPLASHSCREEN_VERSION_Y + 14, GuiDefaults::ScreenWidth, 18), is_multiline::no)
+    , text_author(this, Rect16(0, SPLASHSCREEN_VERSION_Y + 28, GuiDefaults::ScreenWidth, 18), is_multiline::no)
     , progress(this, Rect16(SPLASHSCREEN_PROGRESSBAR_X, SPLASHSCREEN_PROGRESSBAR_Y, SPLASHSCREEN_PROGRESSBAR_W, SPLASHSCREEN_PROGRESSBAR_H), COLOR_BRAND, COLOR_GRAY, 6) {
     ClrMenuTimeoutClose();
 
@@ -80,8 +81,16 @@ ScreenSplash::ScreenSplash()
     text_progress.SetAlignment(Align_t::Center());
     text_progress.SetTextColor(COLOR_GRAY);
 
-    snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s%s", version::project_version, custom_firmware_ui::mod_version_prefixed);
+    snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Custom Firmware %s %s", version::project_version, version::project_version_suffix_short);
     text_progress.SetText(string_view_utf8::MakeRAM(text_progress_buffer));
+    text_mod_version.set_font(Font::small);
+    text_mod_version.SetAlignment(Align_t::Center());
+    text_mod_version.SetTextColor(COLOR_GRAY);
+    text_mod_version.SetText(string_view_utf8::MakeCPUFLASH("Mod Version 1.0"));
+    text_author.set_font(Font::small);
+    text_author.SetAlignment(Align_t::Center());
+    text_author.SetTextColor(COLOR_ORANGE);
+    text_author.SetText(string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line));
     progress.set_progress_percent(50);
 
 #if ENABLED(POWER_PANIC)
@@ -298,71 +307,6 @@ ScreenSplash::ScreenSplash()
     progress_mapper.setup(workflow);
 }
 
-static const char *message(BootstrapStage stage) {
-    switch (stage) {
-    case BootstrapStage::initial:
-        break;
-#if RESOURCES() || BOOTLOADER_UPDATE()
-    case BootstrapStage::looking_for_bbf:
-        return "Looking for BBF...";
-#endif
-#if RESOURCES()
-    case BootstrapStage::preparing_bootstrap:
-        return "Preparing";
-    case BootstrapStage::copying_files:
-        return "Installing";
-#endif
-#if BOOTLOADER_UPDATE()
-    case BootstrapStage::preparing_update:
-    case BootstrapStage::updating:
-        return "Updating bootloader";
-#endif
-#if HAS_ESP()
-    case BootstrapStage::flashing_esp:
-        return "Flashing ESP";
-    case BootstrapStage::reflashing_esp:
-        return "[ESP] Reflashing broken sectors";
-#endif
-#if HAS_PUPPIES()
-    case BootstrapStage::waking_up_puppies:
-        return "Waking up puppies";
-    case BootstrapStage::looking_for_puppies:
-        return "Looking for puppies";
-    case BootstrapStage::verifying_puppies:
-        return "Verifying puppies";
-    #if HAS_DWARF()
-    case BootstrapStage::flashing_dwarf:
-        return "Flashing dwarf";
-    case BootstrapStage::verifying_dwarf:
-        return "Verifying dwarf";
-    #endif
-    #if HAS_PUPPY_MODULARBED()
-    case BootstrapStage::flashing_modular_bed:
-        return "Flashing modularbed";
-    case BootstrapStage::verifying_modular_bed:
-        return "Verifying modularbed";
-    #endif
-    #if HAS_XBUDDY_EXTENSION()
-    case BootstrapStage::flashing_xbuddy_extension:
-        return "Flashing xbuddy extension";
-    case BootstrapStage::verifying_xbuddy_extension:
-        return "Verifying xbuddy extension";
-    #endif
-    #if HAS_AC_CONTROLLER()
-    case BootstrapStage::ac_controller_unknown:
-        return "AC controller: unknown";
-    case BootstrapStage::ac_controller_verify:
-        return "AC controller: verifying";
-    case BootstrapStage::ac_controller_flash:
-        return "AC controller: flashing";
-    case BootstrapStage::ac_controller_ready:
-        return "AC controller: ready";
-    #endif
-#endif
-    }
-    BUDDY_UNREACHABLE();
-}
-
 ScreenSplash::~ScreenSplash() {
     display::enable_resource_file(); // now it is safe to use resources from xFlash
 }
@@ -371,20 +315,9 @@ void ScreenSplash::draw() {
     Validate();
     progress.Invalidate();
     text_progress.Invalidate();
+    text_mod_version.Invalidate();
+    text_author.Invalidate();
     screen_t::draw(); // We want to draw over bootloader's screen without flickering/redrawing
-
-#if HAS_MINI_DISPLAY()
-    constexpr Rect16 branding_cover(20, 74, 200, 40);
-    display::fill_rect(branding_cover, COLOR_BLACK);
-    render_text_align(Rect16(20, 76, 200, 14), string_view_utf8::MakeCPUFLASH("CUSTOM PRUSA"), Font::small, COLOR_BLACK, COLOR_WHITE, {}, Align_t::Center(), false);
-    render_text_align(Rect16(20, 90, 200, 14), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line), Font::small, COLOR_BLACK, COLOR_WHITE, {}, Align_t::Center(), false);
-#endif
-#if HAS_LARGE_DISPLAY()
-    constexpr Rect16 branding_cover(80, 82, 320, 54);
-    display::fill_rect(branding_cover, COLOR_BLACK);
-    render_text_align(Rect16(80, 84, 320, 24), string_view_utf8::MakeCPUFLASH("CUSTOM PRUSA"), Font::normal, COLOR_BLACK, COLOR_WHITE, {}, Align_t::Center(), false);
-    render_text_align(Rect16(80, 108, 320, 18), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line), Font::small, COLOR_BLACK, COLOR_WHITE, {}, Align_t::Center(), false);
-#endif
 #ifdef _DEBUG
     #if HAS_MINI_DISPLAY()
     display::draw_text(Rect16(180, 91, 60, 16), string_view_utf8::MakeCPUFLASH("DEBUG"), Font::small, COLOR_BLACK, COLOR_RED);
@@ -398,9 +331,6 @@ void ScreenSplash::draw() {
 void ScreenSplash::windowEvent(window_t *, GUI_event_t event, void *) {
     if (event == GUI_event_t::LOOP) {
         const auto bootstrap_state = buddy::bootstrap_state_get();
-        text_progress.SetText(bootstrap_state.stage == BootstrapStage::initial
-                ? string_view_utf8::MakeRAM(text_progress_buffer)
-                : string_view_utf8::MakeCPUFLASH(message(bootstrap_state.stage)));
         // FW Splash screen starts from progress bar on 50 %
         const uint8_t progress_percent = bootstrap_state.stage == BootstrapStage::initial ? 50 : 50 + progress_mapper.update_progress(bootstrap_state.stage, static_cast<float>(bootstrap_state.percent) / 100.f) / 2;
         progress.set_progress_percent(progress_percent);
