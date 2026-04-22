@@ -203,8 +203,19 @@ static constexpr NumericInputConfig probe_offset_spin_config = {
     .unit = Unit::millimeter,
 };
 
+// Custom LGX/mod entries are intentionally colorized to distinguish them
+// from native firmware items in the same Experimental menu.
+static constexpr IWindowMenuItem::ColorScheme custom_mod_orange_scheme {
+    .text = {
+        .focused = COLOR_ORANGE,
+        .unfocused = COLOR_ORANGE,
+    },
+};
+
 MI_PROBE_X_OFFSET::MI_PROBE_X_OFFSET()
-    : WiSpin(get_probe_x_offset_mm(), probe_offset_spin_config, _("Probe X offset")) {}
+    : WiSpin(get_probe_x_offset_mm(), probe_offset_spin_config, _("Probe X offset")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
 
 void MI_PROBE_X_OFFSET::OnClick() {
     const float offset = value();
@@ -213,7 +224,9 @@ void MI_PROBE_X_OFFSET::OnClick() {
 }
 
 MI_PROBE_Y_OFFSET::MI_PROBE_Y_OFFSET()
-    : WiSpin(get_probe_y_offset_mm(), probe_offset_spin_config, _("Probe Y offset")) {}
+    : WiSpin(get_probe_y_offset_mm(), probe_offset_spin_config, _("Probe Y offset")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
 
 void MI_PROBE_Y_OFFSET::OnClick() {
     const float offset = value();
@@ -228,14 +241,18 @@ static constexpr NumericInputConfig filament_length_spin_config = {
 };
 
 MI_AUTO_FILAMENT_LOAD_LENGTH::MI_AUTO_FILAMENT_LOAD_LENGTH()
-    : WiSpin(get_auto_filament_load_length_mm(), filament_length_spin_config, _("Auto load length")) {}
+    : WiSpin(get_auto_filament_load_length_mm(), filament_length_spin_config, _("Auto load length")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
 
 void MI_AUTO_FILAMENT_LOAD_LENGTH::OnClick() {
     set_auto_filament_load_length_mm(value());
 }
 
 MI_FILAMENT_UNLOAD_LENGTH::MI_FILAMENT_UNLOAD_LENGTH()
-    : WiSpin(get_filament_unload_length_mm(), filament_length_spin_config, _("Unload length")) {}
+    : WiSpin(get_filament_unload_length_mm(), filament_length_spin_config, _("Unload length")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
 
 void MI_FILAMENT_UNLOAD_LENGTH::OnClick() {
     set_filament_unload_length_mm(value());
@@ -248,7 +265,9 @@ static constexpr NumericInputConfig unload_ramming_scale_spin_config = {
 };
 
 MI_UNLOAD_RAMMING_SCALE::MI_UNLOAD_RAMMING_SCALE()
-    : WiSpin(get_unload_ramming_scale_percent(), unload_ramming_scale_spin_config, _("Unload ramming scale")) {}
+    : WiSpin(get_unload_ramming_scale_percent(), unload_ramming_scale_spin_config, _("Unload ramming scale")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
 
 void MI_UNLOAD_RAMMING_SCALE::OnClick() {
     set_unload_ramming_scale_percent(value());
@@ -261,21 +280,27 @@ static constexpr NumericInputConfig unload_cooling_retract_spin_config = {
 };
 
 MI_UNLOAD_COOLING_RETRACT::MI_UNLOAD_COOLING_RETRACT()
-    : WiSpin(get_unload_cooling_retract_mm(), unload_cooling_retract_spin_config, _("Unload cooling retract")) {}
+    : WiSpin(get_unload_cooling_retract_mm(), unload_cooling_retract_spin_config, _("Unload cooling retract")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
 
 void MI_UNLOAD_COOLING_RETRACT::OnClick() {
     set_unload_cooling_retract_mm(value());
 }
 
 MI_ENABLE_EEPROM_SAVE::MI_ENABLE_EEPROM_SAVE()
-    : WI_ICON_SWITCH_OFF_ON_t(get_enable_eeprom_save(), _("Enable EEPROM save")) {}
+    : WI_ICON_SWITCH_OFF_ON_t(get_enable_eeprom_save(), _("Enable EEPROM save")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
 
 void MI_ENABLE_EEPROM_SAVE::OnChange([[maybe_unused]] size_t old_index) {
     set_enable_eeprom_save(value());
 }
 
 MI_RESET_M500_TUNING::MI_RESET_M500_TUNING()
-    : IWindowMenuItem(_("Reset M500 tuning")) {}
+    : IWindowMenuItem(_("Reset M500 tuning")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
 
 void MI_RESET_M500_TUNING::click([[maybe_unused]] IWindowMenu &window_menu) {
     config_store().axis_steps_per_unit_x.set(std::abs(config_store().axis_steps_per_unit_x.default_val));
