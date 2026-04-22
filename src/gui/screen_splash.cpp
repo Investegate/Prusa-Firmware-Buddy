@@ -77,16 +77,16 @@ ScreenSplash::ScreenSplash()
     , progress(this, Rect16(SPLASHSCREEN_PROGRESSBAR_X, SPLASHSCREEN_PROGRESSBAR_Y, SPLASHSCREEN_PROGRESSBAR_W, SPLASHSCREEN_PROGRESSBAR_H), COLOR_BRAND, COLOR_GRAY, 6) {
     ClrMenuTimeoutClose();
 
-    text_progress.set_font(Font::small);
+    text_progress.set_font(Font::normal);
     text_progress.SetAlignment(Align_t::Center());
     text_progress.SetTextColor(COLOR_GRAY);
 
     snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Custom Firmware %s %s", version::project_version, version::project_version_suffix_short);
-    text_mod_version.set_font(Font::small);
+    text_mod_version.set_font(Font::normal);
     text_mod_version.SetAlignment(Align_t::Center());
     text_mod_version.SetTextColor(COLOR_GRAY);
     text_mod_version.SetText(string_view_utf8::MakeCPUFLASH("Mod Version 1.0"));
-    text_author.set_font(Font::small);
+    text_author.set_font(Font::normal);
     text_author.SetAlignment(Align_t::Center());
     text_author.SetTextColor(COLOR_ORANGE);
     text_author.SetText(string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line));
