@@ -49,6 +49,7 @@
 #endif
 
 #include "display.hpp"
+#include <display_helper.h>
 #include <option/has_switched_fan_test.h>
 #include "custom_firmware_ui.hpp"
 
@@ -373,12 +374,16 @@ void ScreenSplash::draw() {
     screen_t::draw(); // We want to draw over bootloader's screen without flickering/redrawing
 
 #if HAS_MINI_DISPLAY()
-    display::draw_text(Rect16(0, 38, GuiDefaults::ScreenWidth, 14), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_name), Font::small, COLOR_WHITE, COLOR_BLACK);
-    display::draw_text(Rect16(0, 52, GuiDefaults::ScreenWidth, 14), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line), Font::small, COLOR_WHITE, COLOR_BLACK);
+    constexpr Rect16 branding_cover(20, 74, 200, 40);
+    display::fill_rect(branding_cover, COLOR_BLACK);
+    render_text_align(Rect16(20, 76, 200, 14), string_view_utf8::MakeCPUFLASH("CUSTOM PRUSA"), Font::small, COLOR_BLACK, COLOR_WHITE, {}, Align_t::Center(), false);
+    render_text_align(Rect16(20, 90, 200, 14), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line), Font::small, COLOR_BLACK, COLOR_WHITE, {}, Align_t::Center(), false);
 #endif
 #if HAS_LARGE_DISPLAY()
-    display::draw_text(Rect16(0, 42, GuiDefaults::ScreenWidth, 22), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_name), Font::normal, COLOR_WHITE, COLOR_BLACK);
-    display::draw_text(Rect16(0, 66, GuiDefaults::ScreenWidth, 18), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line), Font::small, COLOR_WHITE, COLOR_BLACK);
+    constexpr Rect16 branding_cover(80, 82, 320, 54);
+    display::fill_rect(branding_cover, COLOR_BLACK);
+    render_text_align(Rect16(80, 84, 320, 24), string_view_utf8::MakeCPUFLASH("CUSTOM PRUSA"), Font::normal, COLOR_BLACK, COLOR_WHITE, {}, Align_t::Center(), false);
+    render_text_align(Rect16(80, 108, 320, 18), string_view_utf8::MakeRAM(custom_firmware_ui::firmware_author_line), Font::small, COLOR_BLACK, COLOR_WHITE, {}, Align_t::Center(), false);
 #endif
 #ifdef _DEBUG
     #if HAS_MINI_DISPLAY()
