@@ -242,7 +242,7 @@ void filament_gcodes::M1701_autoload(const std::optional<float> &fast_load_lengt
 
     pause::Settings settings;
     settings.SetExtruder(target_extruder);
-    settings.SetFastLoadLength(fast_load_length);
+    settings.SetSlowLoadLength(fast_load_length);
     settings.SetRetractLength(0.f);
     float e_pos_to_restore = current_position.e;
     mapi::ParkingPosition pos = {

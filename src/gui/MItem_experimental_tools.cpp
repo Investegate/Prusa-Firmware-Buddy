@@ -241,7 +241,7 @@ static constexpr NumericInputConfig filament_length_spin_config = {
 };
 
 MI_AUTO_FILAMENT_LOAD_LENGTH::MI_AUTO_FILAMENT_LOAD_LENGTH()
-    : WiSpin(get_auto_filament_load_length_mm(), filament_length_spin_config, _("Auto load length")) {
+    : WiSpin(get_auto_filament_load_length_mm(), filament_length_spin_config, _("Fast load length")) {
     set_color_scheme(&custom_mod_orange_scheme);
 }
 
