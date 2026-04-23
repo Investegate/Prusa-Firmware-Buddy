@@ -247,7 +247,7 @@ struct CurrentStore
     StoreItem<float, defaults::probe_x_offset_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Probe X Offset MM")> probe_x_offset_mm;
     StoreItem<float, defaults::probe_y_offset_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Probe Y Offset MM")> probe_y_offset_mm;
     StoreItem<int, defaults::auto_filament_load_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Auto Filament Load Length MM")> auto_filament_load_length_mm;
-    StoreItem<int, defaults::autoload_insert_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Autoload Insert Length MM")> autoload_insert_length_mm;
+    StoreItem<int, defaults::autoload_insert_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("INVESTEGATE LGX Autoload Insert Length MM")> autoload_insert_length_mm;
     StoreItem<int, defaults::filament_unload_length_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Filament Unload Length MM")> filament_unload_length_mm;
     StoreItem<int, defaults::unload_ramming_scale_percent, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Unload Ramming Scale Percent")> unload_ramming_scale_percent;
     StoreItem<int, defaults::unload_cooling_retract_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Unload Cooling Retract MM")> unload_cooling_retract_mm;
