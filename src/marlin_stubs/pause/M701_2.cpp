@@ -101,6 +101,7 @@ void filament_gcodes::M701_load(FilamentType filament_to_be_loaded, const std::o
 
     pause::Settings settings;
     settings.SetExtruder(target_extruder);
+    settings.SetSlowLoadLength(static_cast<float>(config_store().autoload_insert_length_mm.get()));
     settings.SetFastLoadLength(fast_load_length);
     settings.SetRetractLength(0.f);
     settings.SetMmuFilamentToLoad(mmu_slot);

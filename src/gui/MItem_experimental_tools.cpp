@@ -250,7 +250,7 @@ void MI_AUTO_FILAMENT_LOAD_LENGTH::OnClick() {
 }
 
 MI_AUTOLOAD_INSERT_LENGTH::MI_AUTOLOAD_INSERT_LENGTH()
-    : WiSpin(get_autoload_insert_length_mm(), filament_length_spin_config, _("Autoload insert length")) {
+    : WiSpin(get_autoload_insert_length_mm(), filament_length_spin_config, _("Initial insert length")) {
     set_color_scheme(&custom_mod_orange_scheme);
 }
 
