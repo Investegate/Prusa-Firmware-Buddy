@@ -154,6 +154,12 @@ public:
     void OnClick() override;
 };
 
+class MI_AUTOLOAD_INSERT_LENGTH : public WiSpin {
+public:
+    MI_AUTOLOAD_INSERT_LENGTH();
+    void OnClick() override;
+};
+
 class MI_FILAMENT_UNLOAD_LENGTH : public WiSpin {
 public:
     MI_FILAMENT_UNLOAD_LENGTH();

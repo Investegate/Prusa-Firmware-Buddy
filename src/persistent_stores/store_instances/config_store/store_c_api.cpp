@@ -114,6 +114,10 @@ extern "C" int get_auto_filament_load_length_mm() {
     return config_store().auto_filament_load_length_mm.get();
 }
 
+extern "C" int get_autoload_insert_length_mm() {
+    return config_store().autoload_insert_length_mm.get();
+}
+
 extern "C" int get_filament_unload_length_mm() {
     return config_store().filament_unload_length_mm.get();
 }
@@ -269,6 +273,10 @@ extern "C" void set_probe_y_offset_mm(const float offset) {
 
 extern "C" void set_auto_filament_load_length_mm(const int length) {
     config_store().auto_filament_load_length_mm.set(length);
+}
+
+extern "C" void set_autoload_insert_length_mm(const int length) {
+    config_store().autoload_insert_length_mm.set(length);
 }
 
 extern "C" void set_filament_unload_length_mm(const int length) {

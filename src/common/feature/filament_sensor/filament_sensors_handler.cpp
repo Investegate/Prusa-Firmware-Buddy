@@ -259,8 +259,8 @@ void FilamentSensors::process_events() {
         }
 
         autoload_sent = true;
-        static char buffer[sizeof("M1701 ZXXXXX")];
-        snprintf(buffer, sizeof(buffer), "M1701 Z%.2f", static_cast<double>(Z_AXIS_LOAD_POS));
+        static char buffer[sizeof("M1701 ZXXXXX.XX LXXXX")];
+        snprintf(buffer, sizeof(buffer), "M1701 Z%.2f L%d", static_cast<double>(Z_AXIS_LOAD_POS), config_store().autoload_insert_length_mm.get());
         // autoload with return option and minimal Z value of 40mm
         // This is a hack, but there is currently no nice way to do snprintf at compile  time
         // We're always writing the same string to the buffer, so there is no race condition

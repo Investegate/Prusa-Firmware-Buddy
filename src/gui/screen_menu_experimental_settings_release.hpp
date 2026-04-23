@@ -24,6 +24,7 @@ using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_PROBE_X_OFFSET,
     MI_PROBE_Y_OFFSET,
     MI_AUTO_FILAMENT_LOAD_LENGTH,
+    MI_AUTOLOAD_INSERT_LENGTH,
     MI_FILAMENT_UNLOAD_LENGTH,
     MI_UNLOAD_RAMMING_SCALE,
     MI_UNLOAD_COOLING_RETRACT,
@@ -40,6 +41,7 @@ struct ExperimentalSettingsValues {
     float probe_x_offset_mm;
     float probe_y_offset_mm;
     int32_t auto_filament_load_length_mm;
+    int32_t autoload_insert_length_mm;
     int32_t filament_unload_length_mm;
     int32_t unload_ramming_scale_percent;
     int32_t unload_cooling_retract_mm;
