@@ -13,7 +13,8 @@ enum class ClickCommand : intptr_t { Return,
     Reset_Z,
     Reset_steps,
     Reset_directions,
-    Reset_currents };
+    Reset_currents,
+    Reset_load_unload };
 
 #if PRINTER_IS_PRUSA_MK3_5()
 // Option to switch off PWM correction to make Alte fans quiet. As of now, only MK3.5 has to deal with this issue
@@ -176,6 +177,15 @@ class MI_UNLOAD_COOLING_RETRACT : public WiSpin {
 public:
     MI_UNLOAD_COOLING_RETRACT();
     void OnClick() override;
+};
+
+
+class MI_RESET_LOAD_UNLOAD : public IWindowMenuItem {
+public:
+    MI_RESET_LOAD_UNLOAD();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
 };
 
 class MI_ENABLE_EEPROM_SAVE final : public WI_ICON_SWITCH_OFF_ON_t {

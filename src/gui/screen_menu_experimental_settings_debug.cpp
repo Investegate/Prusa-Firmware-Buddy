@@ -94,6 +94,19 @@ void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t e
         Item<MI_CURRENT_E>().SetVal(config_store().axis_rms_current_ma_E0_.default_val);
         Invalidate();
         break;
+    case ClickCommand::Reset_load_unload:
+        Item<MI_AUTOLOAD_INSERT_LENGTH>().SetVal(config_store().autoload_insert_length_mm.default_val);
+        Item<MI_AUTO_FILAMENT_LOAD_LENGTH>().SetVal(config_store().auto_filament_load_length_mm.default_val);
+        Item<MI_FILAMENT_UNLOAD_LENGTH>().SetVal(config_store().filament_unload_length_mm.default_val);
+        Item<MI_UNLOAD_RAMMING_SCALE>().SetVal(config_store().unload_ramming_scale_percent.default_val);
+        Item<MI_UNLOAD_COOLING_RETRACT>().SetVal(config_store().unload_cooling_retract_mm.default_val);
+        set_autoload_insert_length_mm(config_store().autoload_insert_length_mm.default_val);
+        set_auto_filament_load_length_mm(config_store().auto_filament_load_length_mm.default_val);
+        set_filament_unload_length_mm(config_store().filament_unload_length_mm.default_val);
+        set_unload_ramming_scale_percent(config_store().unload_ramming_scale_percent.default_val);
+        set_unload_cooling_retract_mm(config_store().unload_cooling_retract_mm.default_val);
+        Invalidate();
+        break;
     }
 }
 

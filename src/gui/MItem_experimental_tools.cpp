@@ -297,6 +297,15 @@ void MI_UNLOAD_COOLING_RETRACT::OnClick() {
     set_unload_cooling_retract_mm(value());
 }
 
+MI_RESET_LOAD_UNLOAD::MI_RESET_LOAD_UNLOAD()
+    : IWindowMenuItem(_("Reset load/unload")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_RESET_LOAD_UNLOAD::click([[maybe_unused]] IWindowMenu &window_menu) {
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_load_unload);
+}
+
 MI_ENABLE_EEPROM_SAVE::MI_ENABLE_EEPROM_SAVE()
     : WI_ICON_SWITCH_OFF_ON_t(get_enable_eeprom_save(), _("Enable EEPROM save")) {
     set_color_scheme(&custom_mod_orange_scheme);
