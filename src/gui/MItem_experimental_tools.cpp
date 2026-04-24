@@ -312,12 +312,9 @@ MI_RESET_M500_TUNING::MI_RESET_M500_TUNING()
 }
 
 void MI_RESET_M500_TUNING::click([[maybe_unused]] IWindowMenu &window_menu) {
-    const auto preserve_direction_sign = [](const float current_signed_steps, const float new_steps_magnitude) {
-        return std::signbit(current_signed_steps) ? -std::abs(new_steps_magnitude) : std::abs(new_steps_magnitude);
-    };
-    config_store().axis_steps_per_unit_x.set(preserve_direction_sign(config_store().axis_steps_per_unit_x.get(), config_store().axis_steps_per_unit_x.default_val));
-    config_store().axis_steps_per_unit_y.set(preserve_direction_sign(config_store().axis_steps_per_unit_y.get(), config_store().axis_steps_per_unit_y.default_val));
-    config_store().axis_steps_per_unit_z.set(preserve_direction_sign(config_store().axis_steps_per_unit_z.get(), config_store().axis_steps_per_unit_z.default_val));
+    config_store().axis_steps_per_unit_x.set(config_store().axis_steps_per_unit_x.default_val);
+    config_store().axis_steps_per_unit_y.set(config_store().axis_steps_per_unit_y.default_val);
+    config_store().axis_steps_per_unit_z.set(config_store().axis_steps_per_unit_z.default_val);
     config_store().marlin_max_feedrate_x.set(config_store().marlin_max_feedrate_x.default_val);
     config_store().marlin_max_feedrate_y.set(config_store().marlin_max_feedrate_y.default_val);
     config_store().marlin_max_feedrate_z.set(config_store().marlin_max_feedrate_z.default_val);
