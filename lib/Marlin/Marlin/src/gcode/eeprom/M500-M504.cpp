@@ -45,10 +45,13 @@
 void GcodeSuite::M500() {
   if (get_enable_eeprom_save()) {
     const auto &s = planner.settings;
-    config_store().axis_steps_per_unit_x.set(s.axis_steps_per_mm[X_AXIS]);
-    config_store().axis_steps_per_unit_y.set(s.axis_steps_per_mm[Y_AXIS]);
-    config_store().axis_steps_per_unit_z.set(s.axis_steps_per_mm[Z_AXIS]);
-    config_store().axis_steps_per_unit_e0.set(s.axis_steps_per_mm[E_AXIS]);
+    const auto preserve_direction_sign = [](const float current_signed_steps, const float new_steps_magnitude) {
+      return std::signbit(current_signed_steps) ? -std::abs(new_steps_magnitude) : std::abs(new_steps_magnitude);
+    };
+    config_store().axis_steps_per_unit_x.set(preserve_direction_sign(config_store().axis_steps_per_unit_x.get(), s.axis_steps_per_mm[X_AXIS]));
+    config_store().axis_steps_per_unit_y.set(preserve_direction_sign(config_store().axis_steps_per_unit_y.get(), s.axis_steps_per_mm[Y_AXIS]));
+    config_store().axis_steps_per_unit_z.set(preserve_direction_sign(config_store().axis_steps_per_unit_z.get(), s.axis_steps_per_mm[Z_AXIS]));
+    config_store().axis_steps_per_unit_e0.set(preserve_direction_sign(config_store().axis_steps_per_unit_e0.get(), s.axis_steps_per_mm[E_AXIS]));
 
     config_store().marlin_max_feedrate_x.set(s.max_feedrate_mm_s[X_AXIS]);
     config_store().marlin_max_feedrate_y.set(s.max_feedrate_mm_s[Y_AXIS]);
