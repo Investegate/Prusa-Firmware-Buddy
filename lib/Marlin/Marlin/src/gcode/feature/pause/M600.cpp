@@ -97,14 +97,14 @@ void GcodeSuite::M600() {
   #else
     // Unload filament
     const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                      : get_filament_unload_length_mm());
+                                                      : fc_settings[active_extruder].unload_length);
 
     // Slow load filament
     const float slow_load_length = ABS(get_autoload_insert_length_mm());
 
     // Fast load filament
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                        : get_auto_filament_load_length_mm());
+                                                        : fc_settings[active_extruder].load_length);
   #endif
 
   const int beep_count = parser.intval('B',
