@@ -252,7 +252,7 @@ struct CurrentStore
     StoreItem<int, defaults::unload_ramming_scale_percent, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Unload Ramming Scale Percent")> unload_ramming_scale_percent;
     StoreItem<int, defaults::unload_cooling_retract_mm, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Unload Cooling Retract MM")> unload_cooling_retract_mm;
     StoreItem<bool, defaults::enable_eeprom_save, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Enable EEPROM Save")> enable_eeprom_save;
-    StoreItem<bool, defaults::enable_print_finish_melody, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("LGX Enable Print Finish Melody")> enable_print_finish_melody;
+    StoreItem<bool, defaults::enable_print_finish_melody, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Print Finish Melody")> enable_print_finish_melody;
 
     StoreItem<uint32_t, 0, ItemFlag::stats, journal::hash("Odometer Time")> odometer_time;
     StoreItem<uint8_t, 0, ItemFlag::network, journal::hash("Active NetDev")> active_netdev; // active network device

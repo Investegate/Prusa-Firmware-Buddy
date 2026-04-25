@@ -268,7 +268,7 @@ void MI_FILAMENT_UNLOAD_LENGTH::OnClick() {
 }
 
 static constexpr NumericInputConfig unload_ramming_scale_spin_config = {
-    .min_value = 10,
+    .min_value = 0,
     .max_value = 150,
     .unit = Unit::percent,
 };
@@ -279,7 +279,15 @@ MI_UNLOAD_RAMMING_SCALE::MI_UNLOAD_RAMMING_SCALE()
 }
 
 void MI_UNLOAD_RAMMING_SCALE::OnClick() {
-    set_unload_ramming_scale_percent(value());
+    const int old_value = get_unload_ramming_scale_percent();
+    int new_value = value();
+
+    if (new_value > 0 && new_value < 10) {
+        new_value = (old_value == 0) ? 10 : 0;
+    }
+
+    SetVal(new_value);
+    set_unload_ramming_scale_percent(new_value);
 }
 
 static constexpr NumericInputConfig unload_cooling_retract_spin_config = {

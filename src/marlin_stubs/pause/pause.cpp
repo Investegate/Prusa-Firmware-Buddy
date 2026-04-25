@@ -1519,50 +1519,66 @@ bool Pause::ram_filament() {
     setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable);
 
     const RammingSequence *ramming_sequence = nullptr;
+    const auto scale_and_execute_ramming_sequence = [this](const RammingSequence &sequence, const int scale_percent) {
+        constexpr float scale_100 = 100.f;
+
+        auto scaled_step_e = [scale_percent](RammingSequence::EDistance e) -> RammingSequence::EDistance {
+            return static_cast<RammingSequence::EDistance>(std::lround(static_cast<float>(e) * scale_percent / scale_100));
+        };
+
+        uint16_t duration_estimate_ms = 0;
+        ram_retracted_distance = 0;
+        for (const auto &step : sequence.steps()) {
+            const auto scaled_e = scaled_step_e(step.e);
+
+            ram_retracted_distance -= scaled_e;
+            if (ram_retracted_distance < 0) {
+                ram_retracted_distance = 0;
+            }
+
+            const auto step_duration_estimate = int32_t(scaled_e) * 60'000 / step.fr_mm_min;
+            duration_estimate_ms += (step_duration_estimate < 0) ? -step_duration_estimate : step_duration_estimate;
+        }
+
+        PauseFsmDurationNotifier notifier(*this, duration_estimate_ms);
+        Temporary_Reset_Motion_Parameters mp_guard;
+        for (const auto &step : sequence.steps()) {
+            mapi::extruder_move(scaled_step_e(step.e), MMM_TO_MMS(step.fr_mm_min));
+            if (check_user_stop(getResponse())) {
+                return false;
+            }
+        }
+
+        planner.synchronize();
+        return !planner.draining();
+    };
 
     switch (load_type) {
     case LoadType::filament_change:
+        if (const int scale_percent = std::clamp(config_store().unload_ramming_scale_percent.get(), 0, 150); scale_percent == 0) {
+            ram_retracted_distance = 0;
+            return true;
+        } else if (scale_percent != 100) {
+            return scale_and_execute_ramming_sequence(runoutRammingSequence, scale_percent);
+        } else {
+            ramming_sequence = &runoutRammingSequence;
+            break;
+        }
+
     case LoadType::filament_stuck:
         ramming_sequence = &runoutRammingSequence;
         break;
 
     default:
-        if (const int scale_percent = std::clamp(config_store().unload_ramming_scale_percent.get(), 10, 150); scale_percent != 100) {
-            constexpr float scale_100 = 100.f;
-
-            auto scaled_step_e = [scale_percent](RammingSequence::EDistance e) -> RammingSequence::EDistance {
-                return static_cast<RammingSequence::EDistance>(std::lround(static_cast<float>(e) * scale_percent / scale_100));
-            };
-
-            uint16_t duration_estimate_ms = 0;
+        if (const int scale_percent = std::clamp(config_store().unload_ramming_scale_percent.get(), 0, 150); scale_percent == 0) {
             ram_retracted_distance = 0;
-            for (const auto &step : unloadRammingSequence.steps()) {
-                const auto scaled_e = scaled_step_e(step.e);
-
-                ram_retracted_distance -= scaled_e;
-                if (ram_retracted_distance < 0) {
-                    ram_retracted_distance = 0;
-                }
-
-                const auto step_duration_estimate = int32_t(scaled_e) * 60'000 / step.fr_mm_min;
-                duration_estimate_ms += (step_duration_estimate < 0) ? -step_duration_estimate : step_duration_estimate;
-            }
-
-            PauseFsmDurationNotifier notifier(*this, duration_estimate_ms);
-            Temporary_Reset_Motion_Parameters mp_guard;
-            for (const auto &step : unloadRammingSequence.steps()) {
-                mapi::extruder_move(scaled_step_e(step.e), MMM_TO_MMS(step.fr_mm_min));
-                if (check_user_stop(getResponse())) {
-                    return false;
-                }
-            }
-
-            planner.synchronize();
-            return !planner.draining();
+            return true;
+        } else if (scale_percent != 100) {
+            return scale_and_execute_ramming_sequence(unloadRammingSequence, scale_percent);
+        } else {
+            ramming_sequence = &unloadRammingSequence;
+            break;
         }
-
-        ramming_sequence = &unloadRammingSequence;
-        break;
     }
 
     PauseFsmDurationNotifier notifier(*this, ramming_sequence->duration_estimate_ms());

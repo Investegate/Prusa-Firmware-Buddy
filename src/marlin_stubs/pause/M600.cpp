@@ -235,6 +235,7 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t re
     pause::Settings settings;
     settings.SetParkPoint(mapi::ParkingPosition::from_xyz_pos(park_point));
     settings.SetResumePoint(resume_point);
+    settings.SetSlowLoadLength(static_cast<float>(get_autoload_insert_length_mm()));
     if (unloadLength.has_value()) {
         settings.SetUnloadLength(unloadLength.value());
     }

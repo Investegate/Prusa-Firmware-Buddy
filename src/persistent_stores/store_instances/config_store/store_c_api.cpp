@@ -288,7 +288,8 @@ extern "C" void set_filament_unload_length_mm(const int length) {
 }
 
 extern "C" void set_unload_ramming_scale_percent(const int percent) {
-    config_store().unload_ramming_scale_percent.set(std::clamp(percent, 10, 150));
+    const int constrained_percent = (percent > 0 && percent < 10) ? 10 : std::clamp(percent, 0, 150);
+    config_store().unload_ramming_scale_percent.set(constrained_percent);
 }
 
 extern "C" void set_unload_cooling_retract_mm(const int length) {
