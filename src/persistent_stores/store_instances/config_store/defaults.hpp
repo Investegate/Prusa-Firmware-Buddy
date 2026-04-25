@@ -98,6 +98,7 @@ namespace defaults {
     inline constexpr int unload_ramming_scale_percent { 100 };
     inline constexpr int unload_cooling_retract_mm { 0 };
     inline constexpr bool enable_eeprom_save { false };
+    inline constexpr bool enable_print_finish_melody { false };
 
     inline constexpr bool prusalink_enabled {
 #if PRINTER_IS_PRUSA_iX()

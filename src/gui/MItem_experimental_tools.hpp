@@ -194,6 +194,12 @@ public:
     void OnChange(size_t old_index) final;
 };
 
+class MI_ENABLE_PRINT_FINISH_MELODY final : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    MI_ENABLE_PRINT_FINISH_MELODY();
+    void OnChange(size_t old_index) final;
+};
+
 class MI_RESET_M500_TUNING : public IWindowMenuItem {
 public:
     MI_RESET_M500_TUNING();

@@ -135,5 +135,6 @@ ExperimentalSettingsValues::ExperimentalSettingsValues(ScreenMenuExperimentalSet
     , unload_ramming_scale_percent(parent.Item<MI_UNLOAD_RAMMING_SCALE>().GetVal())
     , unload_cooling_retract_mm(parent.Item<MI_UNLOAD_COOLING_RETRACT>().GetVal())
     , enable_eeprom_save(parent.Item<MI_ENABLE_EEPROM_SAVE>().value())
+    , enable_print_finish_melody(parent.Item<MI_ENABLE_PRINT_FINISH_MELODY>().value())
 
 {}

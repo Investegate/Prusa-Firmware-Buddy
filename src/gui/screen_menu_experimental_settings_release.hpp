@@ -30,6 +30,7 @@ using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_UNLOAD_COOLING_RETRACT,
     MI_RESET_LOAD_UNLOAD,
     MI_ENABLE_EEPROM_SAVE,
+    MI_ENABLE_PRINT_FINISH_MELODY,
     MI_RESET_M500_TUNING,
     MI_SERIAL_PRINTING_SCREEN_ENABLE,
     MI_FAST_DRAW_ENABLE>;
@@ -47,6 +48,7 @@ struct ExperimentalSettingsValues {
     int32_t unload_ramming_scale_percent;
     int32_t unload_cooling_retract_mm;
     uint8_t enable_eeprom_save;
+    uint8_t enable_print_finish_melody;
     size_t touch_ena;
 
     // this is only safe as long as there are no gaps between variables

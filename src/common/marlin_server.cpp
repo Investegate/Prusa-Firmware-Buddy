@@ -258,6 +258,7 @@ namespace {
 #endif // ENABLED(AXIS_MEASURE)
 
         bool was_print_time_saved = false;
+        bool print_finish_melody_played = false;
 #if HAS_MMU2()
         bool mmu_maintenance_checked = false;
 #endif
@@ -936,6 +937,30 @@ static bool pre_finalize_print([[maybe_unused]] bool finished) {
     return true;
 }
 
+static void try_play_print_finish_melody() {
+    if (server.print_finish_melody_played || !get_enable_print_finish_melody()) {
+        return;
+    }
+
+    static constexpr const char *melody[] = {
+        "M300 S1200 P150",
+        "G4 P200",
+        "M300 S1500 P150",
+        "G4 P200",
+        "M300 S1800 P300",
+        "G4 P500",
+    };
+
+    bool enqueued = true;
+    for (const char *cmd : melody) {
+        enqueued = enqueue_gcode_try(cmd) && enqueued;
+    }
+
+    if (enqueued) {
+        server.print_finish_melody_played = true;
+    }
+}
+
 void static finalize_print(bool finished) {
 #if ENABLED(POWER_PANIC)
     power_panic::reset();
@@ -1325,6 +1350,7 @@ bool printer_paused_extended() {
 
 void serial_print_start() {
     server.print_state = State::SerialPrintInit;
+    server.print_finish_melody_played = false;
     print_state = {};
 }
 
@@ -1371,6 +1397,7 @@ void print_start(const char *filename, const GCodeReaderPosition &resume_pos, ma
     }
 
     print_state = {};
+    server.print_finish_melody_played = false;
 
     if (filename) {
         // Avoid possible deadlocks by disabling a gcode scan, if there's any.
@@ -2582,6 +2609,7 @@ static void _server_print_loop(void) {
         break;
     case State::Finishing_ParkHead:
         if (!is_processing()) {
+            try_play_print_finish_melody();
             server.print_state = State::Finished;
             finalize_print(true);
         }

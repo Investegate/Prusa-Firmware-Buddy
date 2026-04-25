@@ -134,6 +134,10 @@ extern "C" bool get_enable_eeprom_save() {
     return config_store().enable_eeprom_save.get();
 }
 
+extern "C" bool get_enable_print_finish_melody() {
+    return config_store().enable_print_finish_melody.get();
+}
+
 #else
 extern "C" bool has_wrong_x() {
     log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
@@ -293,6 +297,10 @@ extern "C" void set_unload_cooling_retract_mm(const int length) {
 
 extern "C" void set_enable_eeprom_save(const bool enabled) {
     config_store().enable_eeprom_save.set(enabled);
+}
+
+extern "C" void set_enable_print_finish_melody(const bool enabled) {
+    config_store().enable_print_finish_melody.set(enabled);
 }
 
 /*****************************************************************************/

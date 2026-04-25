@@ -315,6 +315,15 @@ void MI_ENABLE_EEPROM_SAVE::OnChange([[maybe_unused]] size_t old_index) {
     set_enable_eeprom_save(value());
 }
 
+MI_ENABLE_PRINT_FINISH_MELODY::MI_ENABLE_PRINT_FINISH_MELODY()
+    : WI_ICON_SWITCH_OFF_ON_t(get_enable_print_finish_melody(), _("Print finish melody")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_ENABLE_PRINT_FINISH_MELODY::OnChange([[maybe_unused]] size_t old_index) {
+    set_enable_print_finish_melody(value());
+}
+
 MI_RESET_M500_TUNING::MI_RESET_M500_TUNING()
     : IWindowMenuItem(_("Reset M500 tuning")) {
     set_color_scheme(&custom_mod_orange_scheme);

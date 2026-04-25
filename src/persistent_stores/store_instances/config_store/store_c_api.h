@@ -56,6 +56,7 @@ int get_filament_unload_length_mm();
 int get_unload_ramming_scale_percent();
 int get_unload_cooling_retract_mm();
 bool get_enable_eeprom_save();
+bool get_enable_print_finish_melody();
 
 /**
  * @brief function set to read float value from eeprom and round it
@@ -95,6 +96,7 @@ void set_filament_unload_length_mm(int length);
 void set_unload_ramming_scale_percent(int percent);
 void set_unload_cooling_retract_mm(int length);
 void set_enable_eeprom_save(bool enabled);
+void set_enable_print_finish_melody(bool enabled);
 
 #ifdef __cplusplus
 }
