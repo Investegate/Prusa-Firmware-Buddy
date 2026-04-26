@@ -240,6 +240,12 @@ static constexpr NumericInputConfig filament_length_spin_config = {
     .unit = Unit::millimeter,
 };
 
+static constexpr NumericInputConfig filament_unload_length_spin_config = {
+    .min_value = 1,
+    .max_value = 199,
+    .unit = Unit::millimeter,
+};
+
 MI_AUTO_FILAMENT_LOAD_LENGTH::MI_AUTO_FILAMENT_LOAD_LENGTH()
     : WiSpin(get_auto_filament_load_length_mm(), filament_length_spin_config, _("Fast load length")) {
     set_color_scheme(&custom_mod_orange_scheme);
@@ -259,7 +265,7 @@ void MI_AUTOLOAD_INSERT_LENGTH::OnClick() {
 }
 
 MI_FILAMENT_UNLOAD_LENGTH::MI_FILAMENT_UNLOAD_LENGTH()
-    : WiSpin(get_filament_unload_length_mm(), filament_length_spin_config, _("Unload length")) {
+    : WiSpin(get_filament_unload_length_mm(), filament_unload_length_spin_config, _("Unload length")) {
     set_color_scheme(&custom_mod_orange_scheme);
 }
 
@@ -279,15 +285,7 @@ MI_UNLOAD_RAMMING_SCALE::MI_UNLOAD_RAMMING_SCALE()
 }
 
 void MI_UNLOAD_RAMMING_SCALE::OnClick() {
-    const int old_value = get_unload_ramming_scale_percent();
-    int new_value = value();
-
-    if (new_value > 0 && new_value < 10) {
-        new_value = (old_value == 0) ? 10 : 0;
-    }
-
-    SetVal(new_value);
-    set_unload_ramming_scale_percent(new_value);
+    set_unload_ramming_scale_percent(value());
 }
 
 static constexpr NumericInputConfig unload_cooling_retract_spin_config = {

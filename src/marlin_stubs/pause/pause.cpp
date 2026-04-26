@@ -1599,7 +1599,9 @@ void Pause::unload_filament() {
 
     const float unload_cooling_retract_mm = std::max<float>(config_store().unload_cooling_retract_mm.get(), 0);
     if (unload_cooling_retract_mm > 0) {
-        std::ignore = do_e_move_notify_progress_coldextrude(-unload_cooling_retract_mm, 1.0f, StopConditions::UserStopped);
+        static constexpr float unload_cooling_retract_duration_s = 5.0f;
+        const float unload_cooling_retract_feedrate_mm_s = unload_cooling_retract_mm / unload_cooling_retract_duration_s;
+        std::ignore = do_e_move_notify_progress_coldextrude(-unload_cooling_retract_mm, unload_cooling_retract_feedrate_mm_s, StopConditions::UserStopped);
     }
 
     // The ramming/cooling retract that happened before the unload already resulted in some amount of retraction -> subtract that

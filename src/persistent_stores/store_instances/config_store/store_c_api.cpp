@@ -284,12 +284,11 @@ extern "C" void set_autoload_insert_length_mm(const int length) {
 }
 
 extern "C" void set_filament_unload_length_mm(const int length) {
-    config_store().filament_unload_length_mm.set(length);
+    config_store().filament_unload_length_mm.set(std::clamp(length, 1, 199));
 }
 
 extern "C" void set_unload_ramming_scale_percent(const int percent) {
-    const int constrained_percent = (percent > 0 && percent < 10) ? 10 : std::clamp(percent, 0, 150);
-    config_store().unload_ramming_scale_percent.set(constrained_percent);
+    config_store().unload_ramming_scale_percent.set(std::clamp(percent, 0, 150));
 }
 
 extern "C" void set_unload_cooling_retract_mm(const int length) {
