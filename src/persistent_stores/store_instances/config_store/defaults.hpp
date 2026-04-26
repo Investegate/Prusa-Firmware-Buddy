@@ -90,8 +90,8 @@ namespace defaults {
     inline constexpr uint16_t language { 0xffff };
 
     inline constexpr uint32_t footer_draw_type { footer::ItemDrawCnf::get_default() };
-    inline constexpr float probe_x_offset_mm { 0.0f };
-    inline constexpr float probe_y_offset_mm { 0.0f };
+    inline constexpr float probe_x_offset_mm { 23.0f };
+    inline constexpr float probe_y_offset_mm { 5.0f };
     inline constexpr int auto_filament_load_length_mm { 45 };
     inline constexpr int autoload_insert_length_mm { 45 };
     inline constexpr int filament_unload_length_mm { 45 };

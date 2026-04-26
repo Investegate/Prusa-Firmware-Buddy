@@ -14,6 +14,7 @@ enum class ClickCommand : intptr_t { Return,
     Reset_steps,
     Reset_directions,
     Reset_currents,
+    Reset_probe_position,
     Reset_load_unload };
 
 #if PRINTER_IS_PRUSA_MK3_5()
@@ -147,6 +148,14 @@ class MI_PROBE_Y_OFFSET : public WiSpin {
 public:
     MI_PROBE_Y_OFFSET();
     void OnClick() override;
+};
+
+class MI_RESET_PROBE_POSITION : public IWindowMenuItem {
+public:
+    MI_RESET_PROBE_POSITION();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
 };
 
 class MI_AUTO_FILAMENT_LOAD_LENGTH : public WiSpin {

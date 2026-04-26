@@ -59,6 +59,13 @@ void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t e
         Item<MI_DIRECTION_E>().set_index(0);
         Invalidate();
         break;
+    case ClickCommand::Reset_probe_position:
+        Item<MI_PROBE_X_OFFSET>().SetVal(config_store().probe_x_offset_mm.default_val);
+        Item<MI_PROBE_Y_OFFSET>().SetVal(config_store().probe_y_offset_mm.default_val);
+        Item<MI_PROBE_X_OFFSET>().OnClick();
+        Item<MI_PROBE_Y_OFFSET>().OnClick();
+        Invalidate();
+        break;
     case ClickCommand::Reset_load_unload:
         Item<MI_AUTOLOAD_INSERT_LENGTH>().SetVal(config_store().autoload_insert_length_mm.default_val);
         Item<MI_AUTO_FILAMENT_LOAD_LENGTH>().SetVal(config_store().auto_filament_load_length_mm.default_val);

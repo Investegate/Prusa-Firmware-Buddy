@@ -213,7 +213,7 @@ static constexpr IWindowMenuItem::ColorScheme custom_mod_orange_scheme {
 };
 
 MI_PROBE_X_OFFSET::MI_PROBE_X_OFFSET()
-    : WiSpin(get_probe_x_offset_mm(), probe_offset_spin_config, _("Probe X offset")) {
+    : WiSpin(get_probe_x_offset_mm(), probe_offset_spin_config, _("Probe X position")) {
     set_color_scheme(&custom_mod_orange_scheme);
 }
 
@@ -224,7 +224,7 @@ void MI_PROBE_X_OFFSET::OnClick() {
 }
 
 MI_PROBE_Y_OFFSET::MI_PROBE_Y_OFFSET()
-    : WiSpin(get_probe_y_offset_mm(), probe_offset_spin_config, _("Probe Y offset")) {
+    : WiSpin(get_probe_y_offset_mm(), probe_offset_spin_config, _("Probe Y position")) {
     set_color_scheme(&custom_mod_orange_scheme);
 }
 
@@ -232,6 +232,15 @@ void MI_PROBE_Y_OFFSET::OnClick() {
     const float offset = value();
     set_probe_y_offset_mm(offset);
     marlin_client::gcode_printf("M851 Y%f", static_cast<double>(offset));
+}
+
+MI_RESET_PROBE_POSITION::MI_RESET_PROBE_POSITION()
+    : IWindowMenuItem(_("Reset probe position")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_RESET_PROBE_POSITION::click([[maybe_unused]] IWindowMenu &window_menu) {
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_probe_position);
 }
 
 static constexpr NumericInputConfig filament_length_spin_config = {
