@@ -155,6 +155,8 @@ void GcodeSuite::M501() {
  */
 void GcodeSuite::M502() {
   (void)settings.reset();
+  set_probe_x_offset_mm(probe_offset.x);
+  set_probe_y_offset_mm(probe_offset.y);
 }
 
 #if DISABLED(DISABLE_M503)
