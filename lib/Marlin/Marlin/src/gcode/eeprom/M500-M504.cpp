@@ -154,7 +154,9 @@ void GcodeSuite::M501() {
  *    M502
  */
 void GcodeSuite::M502() {
+  const float saved_probe_offset_z = probe_offset.z;
   (void)settings.reset();
+  probe_offset.z = saved_probe_offset_z;
 }
 
 #if DISABLED(DISABLE_M503)
