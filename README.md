@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://investegate.de" target="_blank" rel="noopener noreferrer">
+  <a href="https://investegate.de">
     <img width="900" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/8d2f995d-78ea-4179-afd0-5cf49090d13d" />
   </a>
 </p>
@@ -640,7 +640,7 @@ Always verify your printer settings after flashing and run a small test print be
 ---
 
 <p align="center">
-  <a href="https://investegate.de" target="_blank" rel="noopener">
+  <a href="https://investegate.de">
     <img width="69" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/a76a7691-8d6d-4e51-8c5c-3f5ad39ac06a" />
   </a>
 </p>
