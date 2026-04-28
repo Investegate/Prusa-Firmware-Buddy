@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="900" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/438f9018-5cde-41fb-ad1c-7a3008f28160" />
+  <img width="900" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/23cf7c59-ede0-4711-90d5-675f6a435695" />
 </p>
 
 <p align="center">
