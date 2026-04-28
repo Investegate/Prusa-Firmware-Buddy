@@ -2,10 +2,6 @@
   <img width="900" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/23cf7c59-ede0-4711-90d5-675f6a435695" />
 </p>
 
-<p align="center">
-  <img width="69" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/cc0d7d16-de54-402b-a90c-4dff2d34c8ce" />
-</p>
-
 # INVESTEGATE Custom Firmware for Prusa MK3.5 / MK3.5S
 
 Unofficial custom firmware for the **Original Prusa MK3.5 / MK3.5S**, based on official **Prusa-Firmware-Buddy v6.5.3**.
