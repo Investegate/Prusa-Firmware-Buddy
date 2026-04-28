@@ -1,4 +1,5 @@
 #include "store_c_api.h"
+#include <algorithm>
 #include <bitset>
 #include <config_store/store_instance.hpp>
 #include <logging/log.hpp>
@@ -99,6 +100,42 @@ extern "C" bool has_wrong_e() {
 
 extern "C" bool get_print_area_based_heating_enabled() {
     return config_store().heat_entire_bed.get() == false;
+}
+
+extern "C" float get_probe_x_offset_mm() {
+    return config_store().probe_x_offset_mm.get();
+}
+
+extern "C" float get_probe_y_offset_mm() {
+    return config_store().probe_y_offset_mm.get();
+}
+
+extern "C" int get_auto_filament_load_length_mm() {
+    return config_store().auto_filament_load_length_mm.get();
+}
+
+extern "C" int get_autoload_insert_length_mm() {
+    return config_store().autoload_insert_length_mm.get();
+}
+
+extern "C" int get_filament_unload_length_mm() {
+    return config_store().filament_unload_length_mm.get();
+}
+
+extern "C" int get_unload_ramming_scale_percent() {
+    return config_store().unload_ramming_scale_percent.get();
+}
+
+extern "C" int get_unload_cooling_retract_mm() {
+    return config_store().unload_cooling_retract_mm.get();
+}
+
+extern "C" bool get_enable_eeprom_save() {
+    return config_store().enable_eeprom_save.get();
+}
+
+extern "C" bool get_enable_print_finish_melody() {
+    return config_store().enable_print_finish_melody.get();
 }
 
 #else
@@ -230,6 +267,42 @@ extern "C" void set_PRUSA_direction_z() { log_error(EEPROM, "called %s while USE
 extern "C" void set_PRUSA_direction_e() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
 #endif
 
+extern "C" void set_probe_x_offset_mm(const float offset) {
+    config_store().probe_x_offset_mm.set(offset);
+}
+
+extern "C" void set_probe_y_offset_mm(const float offset) {
+    config_store().probe_y_offset_mm.set(offset);
+}
+
+extern "C" void set_auto_filament_load_length_mm(const int length) {
+    config_store().auto_filament_load_length_mm.set(length);
+}
+
+extern "C" void set_autoload_insert_length_mm(const int length) {
+    config_store().autoload_insert_length_mm.set(length);
+}
+
+extern "C" void set_filament_unload_length_mm(const int length) {
+    config_store().filament_unload_length_mm.set(std::clamp(length, 1, 199));
+}
+
+extern "C" void set_unload_ramming_scale_percent(const int percent) {
+    config_store().unload_ramming_scale_percent.set(std::clamp(percent, 0, 150));
+}
+
+extern "C" void set_unload_cooling_retract_mm(const int length) {
+    config_store().unload_cooling_retract_mm.set(std::clamp(length, 0, 20));
+}
+
+extern "C" void set_enable_eeprom_save(const bool enabled) {
+    config_store().enable_eeprom_save.set(enabled);
+}
+
+extern "C" void set_enable_print_finish_melody(const bool enabled) {
+    config_store().enable_print_finish_melody.set(enabled);
+}
+
 /*****************************************************************************/
 // AXIS_MICROSTEPS
 bool is_microstep_value_valid(uint16_t microsteps) {
@@ -252,6 +325,8 @@ bool get_has_400step_xy_motors() {
     return false;
 #elif PRINTER_IS_PRUSA_COREONE()
     return true;
+#elif PRINTER_IS_PRUSA_COREONEL()
+    return false;
 #else
     #error
 #endif

@@ -1,7 +1,9 @@
 #include "marlin_server.hpp"
 
+#include <common/directory.hpp>
 #include <freertos/critical_section.hpp>
 #include <marlin_stubs/skippable_gcode.hpp>
+#include <mapi/parking.hpp>
 #include "marlin_client_queue.hpp"
 #include "marlin_server_request.hpp"
 #include <inttypes.h>
@@ -31,15 +33,16 @@
 #include <media_prefetch/media_prefetch.hpp>
 #include <gcode/gcode_reader_restore_info.hpp>
 #include <dirent.h>
-#include <scope_guard.hpp>
+#include <raii/scope_guard.hpp>
 #include <tools_mapping.hpp>
-#include <RAII.hpp>
+#include <raii/auto_restore.hpp>
 #include <inject_queue.hpp>
 #include <buddy/unreachable.hpp>
 #include <utils/string_builder.hpp>
 #include <utils/mutex_atomic.hpp>
 #include <feature/safety_timer/safety_timer.hpp>
 #include <feature/stepper_timeout/stepper_timeout.hpp>
+#include <config_store/store_c_api.h>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -100,10 +103,12 @@
 #include <option/has_sheet_profiles.h>
 #include <option/has_i2c_expander.h>
 #include <option/has_chamber_api.h>
-#include <option/xbuddy_extension_variant_standard.h>
+#include <option/xbuddy_extension_variant.h>
 #include <option/has_emergency_stop.h>
 #include <option/has_uneven_bed_prompt.h>
+#include <option/has_nextruder.h>
 #include <option/has_chamber_vents.h>
+#include <option/has_human_interactions.h>
 
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
@@ -155,13 +160,16 @@
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
 #endif
+#if HAS_E2EE_SUPPORT()
+    #include <e2ee/key.hpp>
+#endif
 
 #include <option/has_chamber_filtration_api.h>
 #if HAS_CHAMBER_FILTRATION_API()
     #include <feature/chamber_filtration/chamber_filtration.hpp>
 #endif
 
-#if XBUDDY_EXTENSION_VARIANT_STANDARD()
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 #if HAS_EMERGENCY_STOP()
@@ -185,6 +193,16 @@
 #endif
 
 #include <feature/print_status_message/print_status_message_mgr.hpp>
+#include <cmath>
+
+#if HAS_NOZZLE_CLEANER()
+    #include <nozzle_cleaner.hpp>
+#endif
+
+#include "option/has_bed_fan.h"
+#if HAS_BED_FAN()
+    #include <feature/bed_fan/controller.hpp>
+#endif
 
 using namespace ExtUI;
 
@@ -202,8 +220,9 @@ extern ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 
 namespace marlin_server {
 
-CallbackHookPoint<> idle_hook_point;
+Publisher<> idle_publisher;
 
+void media_prefetch_lazy_start();
 void media_prefetch_start();
 
 /// Queue for requests with parameters
@@ -239,6 +258,7 @@ namespace {
 #endif // ENABLED(AXIS_MEASURE)
 
         bool was_print_time_saved = false;
+        bool print_finish_melody_played = false;
 #if HAS_MMU2()
         bool mmu_maintenance_checked = false;
 #endif
@@ -311,7 +331,7 @@ namespace {
             }
 
             if (disable_hotend) {
-                HOTEND_LOOP() {
+                for (int8_t e = 0; e < HOTENDS; e++) {
                     thermalManager.setTargetHotend(0, e);
                     set_temp_to_display(0, e);
                 }
@@ -401,7 +421,7 @@ namespace {
     constinit std::array<ErrorChecker, HOTENDS> hotendFanErrorChecker;
     constinit ErrorChecker printFanErrorChecker;
 
-#if XBUDDY_EXTENSION_VARIANT_STANDARD()
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
     constinit ErrorChecker xbe_cool_fan_checker; // Handles both cooling fans (we cannot differentiate anyway)
     constinit ErrorChecker xbe_filter_fan_checker;
 #endif
@@ -513,7 +533,7 @@ static void handle_warnings() {
         break;
 #endif
 
-#if HAS_ILI9488_DISPLAY()
+#if HAS_ILI9488_DISPLAY() && HAS_HUMAN_INTERACTIONS()
     case PhasesWarning::DisplayProblemDetected:
         config_store().reduce_display_baudrate.set(response == Response::Yes);
         break;
@@ -554,8 +574,7 @@ static void update_warning_fsm() {
 }
 
 void set_warning(WarningType type) {
-    log_warning(MarlinServer, "Warning type %d set", (int)type);
-    log_info(MarlinServer, "WARNING: %" PRIu32, std::to_underlying(type));
+    log_info(MarlinServer, "set_warning(%" PRIu32 ")", std::to_underlying(type));
 
     warning_flags.set(std::to_underlying(type));
     update_warning_fsm();
@@ -789,7 +808,7 @@ static void cycle() {
     buddy::emergency_stop().step();
 #endif
 
-#if XBUDDY_EXTENSION_VARIANT_STANDARD()
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
     buddy::xbuddy_extension().step();
 #endif
 
@@ -799,9 +818,13 @@ static void cycle() {
     // We still need to run the step() there to prevent "sampling bias" so that the timer could reset itself during movements and single-injected gcodes
     buddy::stepper_timeout().step();
 
+#if HAS_BED_FAN()
+    bed_fan::controller().step();
+#endif
+
     record_fanctl_metrics();
 
-    idle_hook_point.call_all();
+    idle_publisher.call_all();
 
     if (is_cycle_running) {
         return;
@@ -861,7 +884,18 @@ static void cycle() {
 }
 
 /// Function that is called just before finalize_print, before the steppers are possibly disabled
-static void pre_finalize_print([[maybe_unused]] bool finished) {
+/// \retval true the function did its job and we can continue with the state machine
+/// \retval false the function is not ready yet, we need to call it later again (loop in the same state)
+static bool pre_finalize_print([[maybe_unused]] bool finished) {
+#if HAS_NOZZLE_CLEANER()
+    if (nozzle_cleaner::is_loader_idle()) {
+        nozzle_cleaner::load_clean_gcode();
+    }
+    if (nozzle_cleaner::is_loader_buffering()) {
+        return false; // We are not ready yet, we need to wait for the loader to finish buffering
+    }
+#endif // HAS_NOZZLE_CLEANER()
+
 #if HAS_AUTO_RETRACT()
     // During multi tool printing, slicer handles retraction/ramming and keeps FW in the dark
     // RetractTracker keeps track of retracted distances on each hotend
@@ -875,6 +909,7 @@ static void pre_finalize_print([[maybe_unused]] bool finished) {
         }
     }
 #endif
+
 #if ENABLED(PRUSA_MMU2)
     if (MMU2::mmu2.Enabled()) {
         // Unloading from nozzle is handled by Slicer, do not use auto_retract (frequent filament changes cause retract_tracker cannot properly hold valid value)
@@ -884,12 +919,45 @@ static void pre_finalize_print([[maybe_unused]] bool finished) {
         }
     } else
 #endif // ENABLED(PRUSA_MMU2)
+
 #if HAS_AUTO_RETRACT()
         if (true) {
         buddy::auto_retract().maybe_retract_from_nozzle();
     } else
 #endif
     {
+    }
+
+#if HAS_NOZZLE_CLEANER()
+    // Here the nozzle cleaner loader should already be ready to execute the gcode.
+    nozzle_cleaner::execute();
+    mapi::park(mapi::ZAction::no_move, mapi::ParkingPosition::from_xyz_pos({ { XYZ_NOZZLE_PARK_POINT } }));
+#endif
+
+    return true;
+}
+
+static void try_play_print_finish_melody() {
+    if (server.print_finish_melody_played || !get_enable_print_finish_melody()) {
+        return;
+    }
+
+    static constexpr const char *melody[] = {
+        "M300 S1200 P150",
+        "G4 P200",
+        "M300 S1500 P150",
+        "G4 P200",
+        "M300 S1800 P300",
+        "G4 P500",
+    };
+
+    bool enqueued = true;
+    for (const char *cmd : melody) {
+        enqueued = enqueue_gcode_try(cmd) && enqueued;
+    }
+
+    if (enqueued) {
+        server.print_finish_melody_played = true;
     }
 }
 
@@ -954,9 +1022,16 @@ void static finalize_print(bool finished) {
 
     marlin_vars().print_end_time = time(nullptr);
     marlin_vars().add_job_result(job_id, finished ? marlin_vars_t::JobInfo::JobResult::finished : marlin_vars_t::JobInfo::JobResult::aborted);
+#if HAS_E2EE_SUPPORT()
+    e2ee::remove_temporary_identites();
+#endif
 
 #if HAS_CHAMBER_FILTRATION_API()
     buddy::chamber_filtration().check_filter_expiration();
+#endif
+
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
+    buddy::xbuddy_extension().set_chamber_regulator_legacy(true); // For compatibility with old gcodes on coreone
 #endif
 
     if (config_store().show_fsensors_disabled_warning_after_print.get()) {
@@ -1030,6 +1105,8 @@ void loop() {
         handle_nfc();
     }
 #endif
+
+    print_utils_loop();
 }
 
 static bool idle_running = false;
@@ -1099,6 +1176,48 @@ bool inject(InjectQueueRecord record) {
 
 static void settings_load() {
     (void)settings.reset();
+    auto s = planner.user_settings;
+    s.axis_steps_per_mm[X_AXIS] = std::abs(config_store().axis_steps_per_unit_x.get());
+    s.axis_steps_per_mm[Y_AXIS] = std::abs(config_store().axis_steps_per_unit_y.get());
+    s.axis_steps_per_mm[Z_AXIS] = std::abs(config_store().axis_steps_per_unit_z.get());
+    s.axis_steps_per_mm[E_AXIS] = std::abs(config_store().axis_steps_per_unit_e0.get());
+    LOOP_XYZE_N(i) {
+        s.axis_msteps_per_mm[i] = s.axis_steps_per_mm[i] * PLANNER_STEPS_MULTIPLIER;
+    }
+
+    s.max_feedrate_mm_s[X_AXIS] = config_store().marlin_max_feedrate_x.get();
+    s.max_feedrate_mm_s[Y_AXIS] = config_store().marlin_max_feedrate_y.get();
+    s.max_feedrate_mm_s[Z_AXIS] = config_store().marlin_max_feedrate_z.get();
+    s.max_feedrate_mm_s[E_AXIS] = config_store().marlin_max_feedrate_e0.get();
+
+    s.max_acceleration_mm_per_s2[X_AXIS] = config_store().marlin_max_acceleration_x.get();
+    s.max_acceleration_mm_per_s2[Y_AXIS] = config_store().marlin_max_acceleration_y.get();
+    s.max_acceleration_mm_per_s2[Z_AXIS] = config_store().marlin_max_acceleration_z.get();
+    s.max_acceleration_mm_per_s2[E_AXIS] = config_store().marlin_max_acceleration_e0.get();
+
+    s.min_segment_time_us = config_store().marlin_min_segment_time_us.get();
+    s.acceleration = config_store().marlin_acceleration.get();
+    s.retract_acceleration = config_store().marlin_retract_acceleration.get();
+    s.travel_acceleration = config_store().marlin_travel_acceleration.get();
+    s.min_feedrate_mm_s = config_store().marlin_min_feedrate.get();
+    s.min_travel_feedrate_mm_s = config_store().marlin_min_travel_feedrate.get();
+#if HAS_CLASSIC_JERK
+    s.max_jerk.x = config_store().marlin_max_jerk_x.get();
+    s.max_jerk.y = config_store().marlin_max_jerk_y.get();
+    s.max_jerk.z = config_store().marlin_max_jerk_z.get();
+#if !HAS_LINEAR_E_JERK
+    s.max_jerk.e = config_store().marlin_max_jerk_e.get();
+#endif
+#else
+    planner.junction_deviation_mm = config_store().marlin_junction_deviation_mm.get();
+#endif
+    planner.apply_settings(s);
+    planner.refresh_positioning();
+#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+    char gcode_buffer[48];
+    snprintf(gcode_buffer, sizeof(gcode_buffer), "M851 X%f Y%f", static_cast<double>(get_probe_x_offset_mm()), static_cast<double>(get_probe_y_offset_mm()));
+    GcodeSuite::process_subcommands_now(gcode_buffer);
+#endif
 #if HAS_SHEET_PROFILES()
     probe_offset.z = SteelSheets::GetZOffset();
 #endif
@@ -1108,7 +1227,7 @@ static void settings_load() {
     Temperature::temp_bed.pid.Kd = config_store().pid_bed_d.get();
 #endif
 #if ENABLED(PIDTEMP)
-    HOTEND_LOOP() {
+    for (int8_t e = 0; e < HOTENDS; e++) {
         Temperature::temp_hotend[e].pid.Kp = config_store().pid_nozzle_p.get();
         Temperature::temp_hotend[e].pid.Ki = config_store().pid_nozzle_i.get();
         Temperature::temp_hotend[e].pid.Kd = config_store().pid_nozzle_d.get();
@@ -1172,7 +1291,7 @@ bool print_preview() {
 #if HAS_TOOLCHANGER() || HAS_MMU2()
         || server.print_state == State::PrintPreviewToolsMapping
 #endif
-        || server.print_state == State::WaitGui;
+        ;
 }
 
 bool is_printing() {
@@ -1231,6 +1350,7 @@ bool printer_paused_extended() {
 
 void serial_print_start() {
     server.print_state = State::SerialPrintInit;
+    server.print_finish_melody_played = false;
     print_state = {};
 }
 
@@ -1277,6 +1397,7 @@ void print_start(const char *filename, const GCodeReaderPosition &resume_pos, ma
     }
 
     print_state = {};
+    server.print_finish_melody_played = false;
 
     if (filename) {
         // Avoid possible deadlocks by disabling a gcode scan, if there's any.
@@ -1322,41 +1443,33 @@ void print_start(const char *filename, const GCodeReaderPosition &resume_pos, ma
         GCodeInfo::getInstance().set_gcode_file(filepath_sfn.data(), filename_lfn.data());
     }
 
+    // Mostly we do not allow printing when some FSM is open (for example Load/Unload).
+    // We allow printing from:
+    //  - Printing - reprint
+    //  - Print preview - calling print from internet
+    const bool any_fsm_open = fsm_states.get_top().has_value();
+    const bool print_preview_open = fsm_states.is_active(ClientFSM::PrintPreview);
+    const bool printing_open = fsm_states.is_active(ClientFSM::Printing);
+    const bool allowed_fsm_open = print_preview_open || printing_open;
+    const bool can_print = !any_fsm_open || allowed_fsm_open;
+    if (printing_open) {
+        // FIXME: From the code in this function, it looks like this never happens.
+        //        Let's gather some data and see if it does.
+        log_error(MarlinServer, "ClientFSM::Printing is open and shouldn't be");
+    }
+
     set_media_position(resume_pos.offset);
     print_state.media_restore_info = resume_pos.restore_info;
-    media_prefetch_start();
 
-    server.print_state = State::WaitGui;
+    if (skip_preview == PreviewSkipIfAble::no) {
+        media_prefetch_lazy_start();
+    } else {
+        media_prefetch_start();
+    }
+
+    server.print_state = can_print ? State::PrintPreviewInit : State::Idle;
 
     PrintPreview::Instance().set_skip_if_able(skip_preview);
-}
-
-void gui_ready_to_print() {
-    switch (server.print_state) {
-
-    case State::WaitGui:
-        server.print_state = State::PrintPreviewInit;
-        break;
-
-    default:
-        log_error(MarlinServer, "Wrong print state, expected: %u, is: %u",
-            static_cast<unsigned>(State::WaitGui), static_cast<unsigned>(server.print_state));
-        break;
-    }
-}
-
-void gui_cant_print() {
-    switch (server.print_state) {
-
-    case State::WaitGui:
-        server.print_state = State::Idle;
-        break;
-
-    default:
-        log_error(MarlinServer, "Wrong print state, expected: %u, is: %u",
-            static_cast<unsigned>(State::WaitGui), static_cast<unsigned>(server.print_state));
-        break;
-    }
 }
 
 void serial_print_finalize(void) {
@@ -1474,7 +1587,7 @@ static void prepare_tool_pickup() {
     disable_XY(); // Let user move the carriage
 
     // Disable heaters
-    HOTEND_LOOP() {
+    for (int8_t e = 0; e < HOTENDS; e++) {
         if ((marlin_vars().hotend(e).target_nozzle > 0)) {
             thermalManager.setTargetHotend(0, e);
             set_temp_to_display(0, e);
@@ -1536,9 +1649,13 @@ static void crash_recovery_begin_crash() {
 }
 #endif /*ENABLED(CRASH_RECOVERY)*/
 
-void media_prefetch_start() {
+void media_prefetch_lazy_start() {
     print_state.file_open_reported = false;
     media_prefetch.start(marlin_vars().media_SFN_path.get_ptr(), GCodeReaderPosition { stream_restore_info(), media_position() });
+}
+
+void media_prefetch_start() {
+    media_prefetch_lazy_start();
     media_prefetch.issue_fetch();
 }
 
@@ -1581,7 +1698,7 @@ std::optional<WarningType> prefetch_status_to_warning(MediaPrefetchManager::Stat
         return std::nullopt;
     }
 
-    BUDDY_UNREACHABLE();
+    bsod_unreachable();
 }
 
 void media_print_loop() {
@@ -1701,14 +1818,13 @@ void update_sfn() {
     // Do this in the async job thread to prevent blocking Marlin on I/O and possibly causing a watchdog reset
     AsyncJob async_job;
     async_job.issue([&d](AsyncJobExecutionControl &) {
-        DIR *dir = opendir(d.filepath_sfn.get());
+        Directory dir { d.filepath_sfn.get() };
         if (!dir) {
             return;
         }
-        ScopeGuard dir_guard([&] { closedir(dir); });
 
         struct dirent *ent;
-        while ((ent = readdir(dir))) {
+        while ((ent = dir.read())) {
             if ((strcasecmp(ent->d_name, d.lfn) == 0) || (strcasecmp(ent->lfn, d.lfn) == 0)) {
                 break;
             }
@@ -1967,11 +2083,6 @@ static void _server_print_loop(void) {
     switch (server.print_state) {
     case State::Idle:
         break;
-    case State::WaitGui:
-        // without gui just act as if state == State::PrintPreviewInit
-#if HAS_GUI()
-        break;
-#endif
     case State::PrintPreviewInit:
         did_not_start_print = true;
         // reset both percentage counters (normal and silent)
@@ -1979,6 +2090,10 @@ static void _server_print_loop(void) {
         oProgressData.stealth_mode.percent_done.mSetValue(0, 0);
         PrintPreview::Instance().Init();
         server.print_state = State::PrintPreviewImage;
+#if HAS_E2EE_SUPPORT()
+        // remove any left over tmp trusted identities
+        e2ee::remove_temporary_identites();
+#endif
         break;
 
     case State::PrintPreviewImage:
@@ -2067,12 +2182,14 @@ static void _server_print_loop(void) {
                 bool is_relative = gcode.axis_is_relative(AxisEnum::E_AXIS);
 
                 enqueue_gcode("M82"); // set E to absolute positions
-    #if HAS_LOADCELL()
+    #if HAS_NEXTRUDER()
                 enqueue_gcode("G1 E25 F1860"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
                 enqueue_gcode("G1 E35 F300"); // slowly push another 10mm (absolute E)
-    #else
+    #elif PRINTER_IS_PRUSA_MK3_5()
                 enqueue_gcode("G1 E50 F1860"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
                 enqueue_gcode("G1 E62 F300"); // slowly push another 12mm (absolute E)
+    #else
+        #error
     #endif
                 if (is_relative) {
                     enqueue_gcode("M83"); // set E back to relative positions
@@ -2103,7 +2220,7 @@ static void _server_print_loop(void) {
             feedrate_percentage = 100;
 
             // Reset flow factor for all extruders
-            HOTEND_LOOP() {
+            for (int8_t e = 0; e < HOTENDS; e++) {
                 planner.flow_percentage[e] = 100;
                 planner.refresh_e_factor(e);
             }
@@ -2172,15 +2289,17 @@ static void _server_print_loop(void) {
             if (!fsm_states.is_active(ClientFSM::Printing)) {
                 // FIXME make this atomic change. It would require improvements in PrintScreen so that it can re-initialize upon phase change.
                 // FYI the DESTROY invoke is in print_start()
-                // NOTE this works surely thanks to State::WaitGui being in between the DESTROY and CREATE
                 fsm_create(PhasesPrinting::active);
             }
         }
 #if HAS_CHAMBER_VENTS()
-        buddy::chamber().manage_ventilation_state();
+        buddy::chamber().manage_ventilation_state(config_store().get_filament_type(0).parameters().chamber_target_temperature);
 #endif
 #if HAS_CHAMBER_FILTRATION_API()
         buddy::chamber_filtration().check_filter_expiration();
+#endif
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
+        buddy::xbuddy_extension().set_chamber_regulator_legacy(true); // For compatibility with old gcodes on coreone
 #endif
         break;
 
@@ -2410,7 +2529,7 @@ static void _server_print_loop(void) {
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0);
 #endif
-        HOTEND_LOOP() {
+        for (int8_t e = 0; e < HOTENDS; e++) {
             set_temp_to_display(0, e);
         }
 
@@ -2422,7 +2541,9 @@ static void _server_print_loop(void) {
             break;
         }
 
-        pre_finalize_print(false);
+        if (!pre_finalize_print(false)) {
+            break;
+        };
         server.print_state = State::Aborting_ParkHead;
         break;
     case State::Aborting_ParkHead:
@@ -2481,11 +2602,14 @@ static void _server_print_loop(void) {
             break;
         }
 
-        pre_finalize_print(true);
+        if (!pre_finalize_print(true)) {
+            break;
+        };
         server.print_state = State::Finishing_ParkHead;
         break;
     case State::Finishing_ParkHead:
         if (!is_processing()) {
+            try_play_print_finish_melody();
             server.print_state = State::Finished;
             finalize_print(true);
         }
@@ -2791,7 +2915,7 @@ static void _server_print_loop(void) {
 #endif
 
     if (do_fan_check) {
-        HOTEND_LOOP() {
+        for (int8_t e = 0; e < HOTENDS; e++) {
 #if !PRINTER_IS_PRUSA_iX()
             const auto fan_state = Fans::heat_break(e).get_state();
             hotendFanErrorChecker[e].checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::HotendFanError, true, true);
@@ -2800,7 +2924,9 @@ static void _server_print_loop(void) {
         const auto fan_state = Fans::print(active_extruder).get_state();
         printFanErrorChecker.checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::PrintFanError, false, true);
 
-#if XBUDDY_EXTENSION_VARIANT_STANDARD()
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
+        // TODO: Fix error checking of chamber fans
+        /*
         const bool cool_fan_ok = buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::cooling_fan_1) && buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::cooling_fan_2);
         xbe_cool_fan_checker.checkTrue(cool_fan_ok, WarningType::ChamberCoolingFanError, false, false);
         if (cool_fan_ok) {
@@ -2812,7 +2938,8 @@ static void _server_print_loop(void) {
         if (filter_fan_ok) {
             xbe_filter_fan_checker.reset();
         }
-#endif /* XBUDDY_EXTENSION_VARIANT_STANDARD() */
+        */
+#endif /* XBUDDY_EXTENSION_VARIANT_IS_STANDARD() */
 #if XL_ENCLOSURE_SUPPORT()
         const bool enclosure_fan_ok = Fans::enclosure().is_fan_ok();
         if (!enclosure_fan_ok && !enclosure_fan_checker.isFailed()) {
@@ -2825,7 +2952,7 @@ static void _server_print_loop(void) {
 #endif
     }
 
-    HOTEND_LOOP() {
+    for (int8_t e = 0; e < HOTENDS; e++) {
         if (Fans::heat_break(e).get_rpm_is_ok()) {
             hotendFanErrorChecker[e].reset();
         }
@@ -2835,7 +2962,7 @@ static void _server_print_loop(void) {
     }
 
 #if HAS_TEMP_HEATBREAK
-    HOTEND_LOOP() {
+    for (int8_t e = 0; e < HOTENDS; e++) {
     #if ENABLED(PRUSA_TOOLCHANGER)
         if (!prusa_toolchanger.is_tool_enabled(e)) {
             continue;
@@ -2864,7 +2991,7 @@ static void _server_print_loop(void) {
     // Check MCU temperatures
     mcuMaxTempErrorChecker.check(AdcGet::getMCUTemp(), WarningType::BuddyMCUMaxTemp, "Buddy");
 #if HAS_DWARF()
-    HOTEND_LOOP() {
+    for (int8_t e = 0; e < HOTENDS; e++) {
         if (prusa_toolchanger.is_tool_enabled(e)) {
             dwarfMaxTempErrorChecker[e].check(buddy::puppies::dwarfs[e].get_mcu_temperature(), WarningType::DwarfMCUMaxTemp, dwarf_names[e]);
         }
@@ -2877,14 +3004,14 @@ static void _server_print_loop(void) {
 
 void resuming_begin(void) {
     // Reset errors, so it can be triggered immediately again
-    HOTEND_LOOP() {
+    for (int8_t e = 0; e < HOTENDS; e++) {
         hotendFanErrorChecker[e].reset();
     }
     printFanErrorChecker.reset();
 
     mcuMaxTempErrorChecker.reset();
 #if HAS_DWARF()
-    HOTEND_LOOP() {
+    for (int8_t e = 0; e < HOTENDS; e++) {
         if (prusa_toolchanger.is_tool_enabled(e)) {
             dwarfMaxTempErrorChecker[e].reset();
         }
@@ -2952,11 +3079,10 @@ void lift_head() {
     static_assert(Z_NOZZLE_PARK_POINT > 0);
 
     if (axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise)) {
-        // Do prepare_move_to_destination, as it segments the move and thus allows better emergency_stop
-        AutoRestore _ar(feedrate_mm_s, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z));
+        // Do prepare_move_to, as it segments the move and thus allows better emergency_stop
         destination = current_position;
         destination.z += distance;
-        prepare_move_to_destination({});
+        prepare_move_to(destination, HOMING_FEEDRATE_INVERTED_Z, {});
         planner.synchronize();
 
     } else {
@@ -2967,7 +3093,7 @@ void lift_head() {
 
         // do_homing_move does not update current position, we have to do it manually
         // have to use HOMING_FEEDRATE, otherwise the stallguards might not trigger
-        if (do_homing_move(Z_AXIS, distance, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z))) {
+        if (do_homing_move(Z_AXIS, distance, HOMING_FEEDRATE_INVERTED_Z)) {
             current_position.z = Z_MAX_POS;
         } else {
             // BFW-7734 but sometimes it zeroes Z - this is to prevent ceiling hit tests from triggering in such a case
@@ -3178,7 +3304,7 @@ static void _server_update_vars() {
         marlin_vars().logical_curr_pos[i] = curr_pos_mm[i];
     }
 
-    HOTEND_LOOP() {
+    for (int8_t e = 0; e < HOTENDS; e++) {
         auto &extruder = marlin_vars().hotend(e);
 
         extruder.temp_nozzle = thermalManager.degHotend(e);
@@ -3380,9 +3506,6 @@ static void process_request_flags() {
         }
 
         switch (RequestFlag(i)) {
-        case RequestFlag::PrintReady:
-            gui_ready_to_print();
-            break;
         case RequestFlag::PrintAbort:
             print_abort();
             break;
@@ -3408,9 +3531,6 @@ static void process_request_flags() {
             break;
         case RequestFlag::KnobClick:
             buddy::safety_timer().reset_restore_nonblocking();
-            break;
-        case RequestFlag::GuiCantPrint:
-            gui_cant_print();
             break;
 #if HAS_SELFTEST()
         case RequestFlag::TestAbort:
@@ -3484,7 +3604,7 @@ static void _server_set_var(const Request &request) {
     }
 
     // Now see if extruder variable is set
-    HOTEND_LOOP() {
+    for (int8_t e = 0; e < HOTENDS; e++) {
         auto &extruder = marlin_vars().hotend(e);
         if (reinterpret_cast<uintptr_t>(&extruder.target_nozzle) == variable_identifier) {
             extruder.target_nozzle = request.set_variable.float_value;
@@ -3597,8 +3717,6 @@ void onIdle() {
     // update sensor values for metrics and sensor screens
     sensor_data().update();
     buddy::metrics::record();
-
-    print_utils_loop();
 }
 
 void onPrintTimerStarted() {

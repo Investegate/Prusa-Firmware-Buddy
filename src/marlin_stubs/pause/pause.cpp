@@ -26,22 +26,21 @@
 
 #if HAS_NOZZLE_CLEANER()
     #include <nozzle_cleaner.hpp>
-    #include <gcode_loader.hpp>
 #endif
 
 #include "Marlin/src/feature/pause.h"
-#include "filament_sensors_handler.hpp"
+#include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include "marlin_server.hpp"
 #include "fs_event_autolock.hpp"
 #include "filament.hpp"
 #include "client_response.hpp"
 #include "fsm_loadunload_type.hpp"
-#include "RAII.hpp"
+#include <raii/auto_restore.hpp>
 #include "mapi/motion.hpp"
 #include <cmath>
 #include <logging/log.hpp>
 #include <config_store/store_instance.hpp>
-#include <scope_guard.hpp>
+#include <raii/scope_guard.hpp>
 #include <filament_to_load.hpp>
 #include <common/marlin_client.hpp>
 #include <common/mapi/parking.hpp>
@@ -49,11 +48,14 @@
 #include <feature/ramming/standard_ramming_sequence.hpp>
 #include <utils/progress.hpp>
 #include <buddy/unreachable.hpp>
+#include <sound.hpp>
 #include <feature/safety_timer/safety_timer.hpp>
+#include <algorithm>
 
 #include <option/has_human_interactions.h>
 #include <option/has_mmu2.h>
 #include <option/has_wastebin.h>
+#include <option/has_side_fsensor.h>
 
 #include <option/has_auto_retract.h>
 #if HAS_AUTO_RETRACT()
@@ -66,21 +68,14 @@ LOG_COMPONENT_REF(MarlinServer);
     #define NOZZLE_UNPARK_XY_FEEDRATE NOZZLE_PARK_XY_FEEDRATE
 #endif
 
-#if HAS_NOZZLE_CLEANER()
-GCodeLoader nozzle_cleaner_gcode_loader;
-#endif
-
 // private:
 // check unsupported features
 // filament sensor is no longer part of marlin thus it must be disabled
-// HAS_BUZZER must be disabled, because we handle it differently than marlin
 // clang-format off
 #if (!ENABLED(EXTENSIBLE_UI)) || \
     (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
     HAS_FILAMENT_SENSOR || \
-    HAS_BUZZER || \
     NUM_RUNOUT_SENSORS > 1 || \
-    ENABLED(DUAL_X_CARRIAGE) || \
     ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE)
 #error unsupported
 #endif
@@ -96,11 +91,11 @@ static void report_progress(Pause &pause, ProgressPercent progress) {
 }
 
 /// During its lifetime, automatically reports progress based on the current FSM state (thanks to ProgressMapper) and value of the specified marlin variable (hooks into marlin idle())
-class PauseFsmNotifier : public CallbackHookGuard<> {
+class PauseFsmNotifier : public Subscriber<> {
 
 public:
     PauseFsmNotifier(Pause &pause, float min, float max, const MarlinVariable<float> &var)
-        : CallbackHookGuard<>(marlin_server::idle_hook_point, [this, &var] {
+        : Subscriber<>(marlin_server::idle_publisher, [this, &var] {
             const auto progress = pause_.progress_mapper.update_progress(pause_.get_state(), to_normalized_progress(min_, max_, var.get()));
             report_progress(pause_, progress);
         })
@@ -114,11 +109,11 @@ private:
 };
 
 /// Same as PauseFSMNotifier, but ties the progress to elapsed time instead of marlin variable
-class PauseFsmDurationNotifier : public CallbackHookGuard<> {
+class PauseFsmDurationNotifier : public Subscriber<> {
 
 public:
     PauseFsmDurationNotifier(Pause &pause, uint32_t duration_ms)
-        : CallbackHookGuard<>(marlin_server::idle_hook_point, [this, duration_ms] {
+        : Subscriber<>(marlin_server::idle_publisher, [this, duration_ms] {
             const auto progress = pause_.progress_mapper.update_progress(pause_.get_state(), to_normalized_progress(0, duration_ms, ticks_ms() - start_ms_));
             report_progress(pause_, progress);
         })
@@ -131,11 +126,11 @@ private:
 };
 
 // TODO Removeme; only for parking moves, which are not part of the actual FSM, so they cannot use the ProgressMapper
-class PauseFsmExplicitProgressNotifier : public CallbackHookGuard<> {
+class PauseFsmExplicitProgressNotifier : public Subscriber<> {
 
 public:
     PauseFsmExplicitProgressNotifier(Pause &pause, float min, float max, ProgressPercent progress_min, ProgressPercent progress_max, const MarlinVariable<float> &var)
-        : CallbackHookGuard<>(marlin_server::idle_hook_point, [this, &var] {
+        : Subscriber<>(marlin_server::idle_publisher, [this, &var] {
             const auto progress = progress_span_.map(to_normalized_progress(min_, max_, var.get()));
             report_progress(pause_, progress);
         })
@@ -164,7 +159,7 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
 void unhomed_z_lift(float amount_mm) {
     if (amount_mm > current_position.z) {
         TemporaryGlobalEndstopsState park_move_endstops(true);
-        do_homing_move((AxisEnum)(Z_AXIS), amount_mm - current_position.z, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z), false); // warning: the speed must probably be exactly this, otherwise endstops don't work
+        do_homing_move((AxisEnum)(Z_AXIS), amount_mm - current_position.z, HOMING_FEEDRATE_INVERTED_Z, false); // warning: the speed must probably be exactly this, otherwise endstops don't work
         // note: do_homing_move() resets the Marlin's internal position (Planner::position) to 0 (in Z axis) at the beginning
         current_position.z = amount_mm;
         sync_plan_position();
@@ -189,7 +184,6 @@ PausePrivatePhase::PausePrivatePhase()
 void PausePrivatePhase::setPhase(PhasesLoadUnload ph) {
     phase = ph;
     if (load_unload_mode) {
-        log_info(MarlinServer, "setPhase %i %i", int(ph), int(state));
         // Do not call progress_mapper.update_progress() here. We want to completely skip states that do nothing and remap the remaining progress
         // If we update progress here, the phase would be included in the progress mapping
         marlin_server::fsm_change(phase, fsm::serialize_data(FSMLoadUnloadData { .mode = *load_unload_mode, .progress = progress_mapper.current_progress() }));
@@ -398,6 +392,18 @@ void Pause::load_start_process([[maybe_unused]] Response response) {
     }
 #endif
 
+#if HAS_SIDE_FSENSOR()
+    if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder) && FSensors_instance().no_filament_surely(LogicalFilamentSensor::side)) {
+        // When filament is in extruder sensor but not in side sensor, it's not a good idea to push another one in
+
+        // Filament should be already out of gears by now, we move it just to be sure it's removable manually
+        std::ignore = do_e_move_notify_progress_coldextrude(-20.f, (FILAMENT_CHANGE_UNLOAD_FEEDRATE), StopConditions::Accomplished);
+        Sound_Play(eSOUND_TYPE::SingleBeep);
+        set(LoadState::loading_obstruction);
+        return;
+    }
+#endif
+
     switch (load_type) {
     case LoadType::load_to_gears:
         // if extruder sensor is not working, we cannot load filament automatically, we need the user to manually confirm the the filament is pushed in
@@ -436,6 +442,28 @@ void Pause::load_start_process([[maybe_unused]] Response response) {
         break;
     }
 }
+
+#if HAS_SIDE_FSENSOR()
+void Pause::loading_obstruction_process(Response response) {
+    setPhase(is_unstoppable() ? PhasesLoadUnload::LoadingObstruction_unstoppable : PhasesLoadUnload::LoadingObstruction_stoppable);
+    handle_help(response);
+
+    switch (response) {
+    case Response::Help:
+    case Response::Retry:
+        // Retry falls back to load_start, where FS is checked again and retracts if it fails
+        set(LoadState::load_start);
+        break;
+
+    case Response::Stop:
+        set(LoadState::stop);
+        break;
+
+    default:
+        break;
+    }
+}
+#endif
 
 void Pause::filament_push_ask_process(Response response) {
     if constexpr (!option::has_human_interactions) {
@@ -645,6 +673,10 @@ static constexpr float retract_distance = -4.f; // mm
 static constexpr feedRate_t retract_feedrate = 35; // mm/s
 
 void Pause::purge_process([[maybe_unused]] Response response) {
+#if HAS_NOZZLE_CLEANER()
+    set(LoadState::purge_nozzle_clean);
+    return;
+#endif
     // Extrude filament to get into hotend
     setPhase(is_unstoppable() ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable);
 
@@ -665,15 +697,64 @@ void Pause::purge_process([[maybe_unused]] Response response) {
 
     config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
 
-    if constexpr (!option::has_human_interactions) {
-        set(LoadState::load_prime);
-        return;
-    }
-
     setPhase(load_type == LoadType::load_purge ? PhasesLoadUnload::IsColorPurge : PhasesLoadUnload::IsColor);
     set(LoadState::color_correct_ask);
     handle_filament_removal(LoadState::filament_push_ask);
 }
+
+#if HAS_NOZZLE_CLEANER()
+void Pause::purge_nozzle_clean_process([[maybe_unused]] Response response) {
+    static constexpr float purge_length = 5.f;
+    static constexpr uint8_t retry_cnt = 3; // Number of maximum retries for the whole nozzle cleaning purge loop
+
+    setPhase(is_unstoppable() ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable);
+    mapi::park(mapi::ZAction::no_move, mapi::park_positions[mapi::ParkPosition::purge]); // park just to be sure
+    planner.synchronize(); // Finish any pending moves before starting the purge
+
+    ScopeGuard resetLoader = [&] {
+        nozzle_cleaner::reset();
+    };
+
+    float purged = 0.f;
+    while (purged < settings.purge_length()) {
+        if (nozzle_cleaner::is_loader_idle()) {
+            nozzle_cleaner::load_vblade_cut_gcode();
+        }
+        if (nozzle_cleaner::is_loader_buffering()) {
+            idle(true); // Wait for the loader to finish buffering
+            continue; // We are not ready yet, we need to wait for the loader to finish buffering
+        }
+        const auto purge_result = do_e_move_notify_progress_hotextrude(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE, StopConditions::All);
+        purged += purge_length;
+        switch (purge_result) {
+        case StopConditions::SideFilamentSensorRunout:
+            set(LoadState::runout_during_load);
+            return;
+        case StopConditions::UserStopped:
+            planner.quick_stop_and_resume();
+            set(LoadState::load_prime);
+            return;
+        default:
+            break;
+        }
+        planner.synchronize(); // Wait for the purge to finish before continuing
+        if (!nozzle_cleaner::execute()) {
+            if (++failed_purge_attempts >= retry_cnt) {
+                // If we failed to purge the nozzle x times, we need to stop the process
+                SERIAL_ECHO_MSG("Purging with nozzle cleaning failed, stopping the process");
+                set(LoadState::stop);
+                failed_purge_attempts = 0; // Reset the failed attempts counter
+                return;
+            }
+            return; // This exits the loop and method and does not change the state so the whole loop will begin again
+        };
+        mapi::park(mapi::ZAction::no_move, mapi::park_positions[mapi::ParkPosition::purge]);
+        planner.synchronize(); // Wait for the park to finish before continuing
+    }
+    config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
+    set(LoadState::load_prime);
+}
+#endif // HAS_NOZZLE_CLEANER()
 
 void Pause::color_correct_ask_process(Response response) {
     switch (response) {
@@ -709,8 +790,7 @@ void Pause::mmu_load_start_process([[maybe_unused]] Response response) {
             set(LoadState::load_prime);
             return;
         }
-
-        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
+        config_store().set_filament_type(settings.mmu_filament_to_load, filament::get_type_to_load());
 
         setPhase(PhasesLoadUnload::IsColor);
         set(LoadState::color_correct_ask);
@@ -811,7 +891,6 @@ void Pause::load_prime_process([[maybe_unused]] Response response) {
         return;
     }
 #endif
-
     if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
         // Feed a little bit of filament to stabilize pressure in nozzle
 
@@ -828,21 +907,7 @@ void Pause::load_prime_process([[maybe_unused]] Response response) {
     }
 
 #if HAS_NOZZLE_CLEANER()
-    switch (load_type) {
-    case LoadType::load:
-    case LoadType::autoload:
-    case LoadType::load_to_gears:
-    case LoadType::load_purge:
-        nozzle_cleaner_gcode_loader.load_gcode(nozzle_cleaner::load_filename, nozzle_cleaner::load_sequence);
-        break;
-    case LoadType::filament_change:
-    case LoadType::filament_stuck:
-        nozzle_cleaner_gcode_loader.load_gcode(nozzle_cleaner::runout_filename, nozzle_cleaner::runout_sequence);
-        break;
-    default:
-        break;
-    }
-
+    nozzle_cleaner::load_clean_gcode();
     set(LoadState::load_nozzle_clean);
     return;
 #endif
@@ -853,15 +918,14 @@ void Pause::load_prime_process([[maybe_unused]] Response response) {
 #if HAS_NOZZLE_CLEANER()
 void Pause::load_nozzle_clean_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::LoadNozzleCleaning);
-    auto loader_result = nozzle_cleaner_gcode_loader.get_result();
 
-    if (loader_result.has_value()) {
-        GcodeSuite::process_subcommands_now(loader_result.value());
-    }
-
-    if (loader_result.has_value() || loader_result.error() != GCodeLoader::BufferState::buffering) {
-        nozzle_cleaner_gcode_loader.reset();
+    if (nozzle_cleaner::execute()) {
         set(LoadState::_finished);
+
+        if (!marlin_server::is_printing()) {
+            // If not printing, park on the nozzle cleaner planchette
+            mapi::park(mapi::ZAction::no_move, mapi::ParkingPosition::from_xyz_pos({ { XYZ_NOZZLE_PARK_POINT } }));
+        }
     }
 }
 #endif
@@ -906,7 +970,15 @@ void Pause::unload_start_process([[maybe_unused]] Response response) {
 
 #if HAS_MMU2()
     if (FSensors_instance().HasMMU()) {
-        set(LoadState::mmu_unload_start);
+        // filament_stuck needs special handling in MMU-mode - it must be reported on the screen just like in normal mode
+        // and the user must resolve it by hand. Currently, there is no way the MMU can safely help in resolving the error (too many potential edge-cases)
+        if (load_type == LoadType::filament_stuck) {
+    #if HAS_LOADCELL()
+            set(LoadState::filament_stuck_ask);
+    #endif
+        } else {
+            set(LoadState::mmu_unload_start);
+        }
         return;
     }
 #endif
@@ -946,6 +1018,13 @@ void Pause::auto_retract_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::AutoRetracting);
     PauseFsmDurationNotifier progress_notifier(*this, standard_ramming_sequence(StandardRammingSequence::auto_retract, marlin_vars().active_hotend_id()).duration_estimate_ms());
     auto_retract().maybe_retract_from_nozzle();
+
+    #if HAS_NOZZLE_CLEANER()
+    nozzle_cleaner::load_clean_gcode();
+    set(LoadState::load_nozzle_clean);
+    return;
+    #endif
+
     set(LoadState::_finished);
 }
 #endif
@@ -967,6 +1046,12 @@ void Pause::ram_sequence_process([[maybe_unused]] Response response) {
 
 void Pause::unload_process([[maybe_unused]] Response response) {
     setPhase(is_unstoppable() ? PhasesLoadUnload::Unloading_unstoppable : PhasesLoadUnload::Unloading_stoppable);
+#if HAS_NOZZLE_CLEANER()
+    bool needs_cleaning = true; // Assume we need to clean the nozzle
+    #if HAS_AUTO_RETRACT()
+    needs_cleaning = !auto_retract().is_safely_retracted_for_unload(); // If we are retracted, we don't need to clean the nozzle
+    #endif
+#endif
     unload_filament();
 
     config_store().set_filament_type(settings.GetExtruder(), FilamentType::none);
@@ -981,10 +1066,11 @@ void Pause::unload_process([[maybe_unused]] Response response) {
     case LoadType::filament_change:
     case LoadType::filament_stuck:
 #if HAS_NOZZLE_CLEANER()
-        nozzle_cleaner_gcode_loader.load_gcode(nozzle_cleaner::unload_filename, nozzle_cleaner::unload_sequence);
-
-        set(LoadState::unload_nozzle_clean);
-        return;
+        if (needs_cleaning) {
+            nozzle_cleaner::load_clean_gcode();
+            set(LoadState::unload_nozzle_clean);
+            return;
+        }
 #endif
 
         if constexpr (!option::has_human_interactions) {
@@ -1003,7 +1089,12 @@ void Pause::unloaded_ask_process(Response response) {
     setPhase(PhasesLoadUnload::IsFilamentUnloaded);
 
     if (response == Response::Yes) {
-        set(LoadState::filament_not_in_fs);
+        // skip fsensor check for E-stall on MMU, FINDA remains pressed, because it makes no sense pulling filament out of the MMU as well.
+        if (load_type == LoadType::filament_stuck && FSensors_instance().HasMMU()) {
+            set(LoadState::filament_push_ask);
+        } else {
+            set(LoadState::filament_not_in_fs);
+        }
         return;
     }
     if (response == Response::No) {
@@ -1023,14 +1114,8 @@ void Pause::unload_from_gears_process([[maybe_unused]] Response response) {
 #if HAS_NOZZLE_CLEANER()
 void Pause::unload_nozzle_clean_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::UnloadNozzleCleaning);
-    auto loader_result = nozzle_cleaner_gcode_loader.get_result();
 
-    if (loader_result.has_value()) {
-        GcodeSuite::process_subcommands_now(loader_result.value());
-    }
-
-    if (loader_result.has_value() || loader_result.error() != GCodeLoader::BufferState::buffering) {
-        nozzle_cleaner_gcode_loader.reset();
+    if (nozzle_cleaner::execute()) {
         if constexpr (!option::has_human_interactions) {
             runout_timer_ms = ticks_ms();
             set(LoadState::filament_not_in_fs);
@@ -1213,7 +1298,7 @@ void Pause::park_nozzle_and_notify() {
 
     const float target_Z = settings.park_pos.z;
     const float Z_len = current_position.z - target_Z; // sign does not matter
-    const float Z_feedrate = settings.park_z_feedrate; // customizable Z feedrate
+    const float Z_feedrate = HOMING_FEEDRATE_INVERTED_Z;
 
     float XY_len = 0;
     float begin_pos = 0;
@@ -1336,22 +1421,10 @@ void Pause::unpark_nozzle_and_notify() {
 
     // Move Z_AXIS to saved position, scope for PauseFsmNotifier
     {
-        auto resume_pos_adj = settings.resume_pos;
+        PauseFsmExplicitProgressNotifier N(*this, current_position.z, settings.resume_pos.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars().native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
 
-        // Gotta apply leveling, otherwise the move would move the axes to non-leveled coordinates
-        // (because do_blocking_move_to->plan_park_move_to->buffer_line doesn't apply the leveling :/)
-        // If PLANNER_LEVELING is true, the leveling is applied inside buffer_line
-#if HAS_LEVELING && !PLANNER_LEVELING
-        planner.apply_leveling(resume_pos_adj);
-#endif
-
-        PauseFsmExplicitProgressNotifier N(*this, current_position.z, resume_pos_adj.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars().native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
         // FIXME: use a beter movement api when available
-        do_blocking_move_to_z(resume_pos_adj.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE), Segmented::yes);
-        // But since the plan_park_move_to overrides the current position values (which are by default in
-        // native (without MBL) coordinates and we apply MBL to them) we need to reset the z height to
-        // make all the future moves correct.
-        current_position.z = settings.resume_pos.z;
+        do_blocking_move_to_z(settings.resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE), Segmented::yes);
     }
 
     // Unretract
@@ -1446,16 +1519,66 @@ bool Pause::ram_filament() {
     setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable);
 
     const RammingSequence *ramming_sequence = nullptr;
+    const auto scale_and_execute_ramming_sequence = [this](const RammingSequence &sequence, const int scale_percent) {
+        constexpr float scale_100 = 100.f;
+
+        auto scaled_step_e = [scale_percent](RammingSequence::EDistance e) -> RammingSequence::EDistance {
+            return static_cast<RammingSequence::EDistance>(std::lround(static_cast<float>(e) * scale_percent / scale_100));
+        };
+
+        uint16_t duration_estimate_ms = 0;
+        ram_retracted_distance = 0;
+        for (const auto &step : sequence.steps()) {
+            const auto scaled_e = scaled_step_e(step.e);
+
+            ram_retracted_distance -= scaled_e;
+            if (ram_retracted_distance < 0) {
+                ram_retracted_distance = 0;
+            }
+
+            const auto step_duration_estimate = int32_t(scaled_e) * 60'000 / step.fr_mm_min;
+            duration_estimate_ms += (step_duration_estimate < 0) ? -step_duration_estimate : step_duration_estimate;
+        }
+
+        PauseFsmDurationNotifier notifier(*this, duration_estimate_ms);
+        Temporary_Reset_Motion_Parameters mp_guard;
+        for (const auto &step : sequence.steps()) {
+            mapi::extruder_move(scaled_step_e(step.e), MMM_TO_MMS(step.fr_mm_min));
+            if (check_user_stop(getResponse())) {
+                return false;
+            }
+        }
+
+        planner.synchronize();
+        return !planner.draining();
+    };
 
     switch (load_type) {
     case LoadType::filament_change:
+        if (const int scale_percent = std::clamp(config_store().unload_ramming_scale_percent.get(), 0, 150); scale_percent == 0) {
+            ram_retracted_distance = 0;
+            return true;
+        } else if (scale_percent != 100) {
+            return scale_and_execute_ramming_sequence(runoutRammingSequence, scale_percent);
+        } else {
+            ramming_sequence = &runoutRammingSequence;
+            break;
+        }
+
     case LoadType::filament_stuck:
         ramming_sequence = &runoutRammingSequence;
         break;
 
     default:
-        ramming_sequence = &unloadRammingSequence;
-        break;
+        if (const int scale_percent = std::clamp(config_store().unload_ramming_scale_percent.get(), 0, 150); scale_percent == 0) {
+            ram_retracted_distance = 0;
+            return true;
+        } else if (scale_percent != 100) {
+            return scale_and_execute_ramming_sequence(unloadRammingSequence, scale_percent);
+        } else {
+            ramming_sequence = &unloadRammingSequence;
+            break;
+        }
     }
 
     PauseFsmDurationNotifier notifier(*this, ramming_sequence->duration_estimate_ms());
@@ -1474,8 +1597,15 @@ void Pause::unload_filament() {
         planner.apply_settings(s);
     }
 
-    // The ramming that happened before the unload already resulted in some amount of retraction -> subtract that
-    const float remaining_unload_length = std::max<float>(std::abs(settings.unload_length) - ram_retracted_distance, 0);
+    const float unload_cooling_retract_mm = std::max<float>(config_store().unload_cooling_retract_mm.get(), 0);
+    if (unload_cooling_retract_mm > 0) {
+        static constexpr float unload_cooling_retract_duration_s = 5.0f;
+        const float unload_cooling_retract_feedrate_mm_s = unload_cooling_retract_mm / unload_cooling_retract_duration_s;
+        std::ignore = do_e_move_notify_progress_coldextrude(-unload_cooling_retract_mm, unload_cooling_retract_feedrate_mm_s, StopConditions::UserStopped);
+    }
+
+    // The ramming/cooling retract that happened before the unload already resulted in some amount of retraction -> subtract that
+    const float remaining_unload_length = std::max<float>(std::abs(settings.unload_length) - ram_retracted_distance - unload_cooling_retract_mm, 0);
 
     // At this point, we are already rammed (so the filament is out of the nozzle), so we do not need to enforce nozzle temp
     std::ignore = do_e_move_notify_progress_coldextrude(-remaining_unload_length, (FILAMENT_CHANGE_UNLOAD_FEEDRATE), StopConditions::UserStopped);

@@ -27,6 +27,7 @@
 #include "../gcode.h"
 #include "../../feature/bedlevel/bedlevel.h"
 #include "../../module/probe.h"
+#include <config_store/store_c_api.h>
 
 /** \addtogroup G-Codes
  * @{
@@ -59,7 +60,8 @@ void GcodeSuite::M851() {
 
   bool ok = true;
 
-  if (parser.seenval('X')) {
+  const bool has_x = parser.seenval('X');
+  if (has_x) {
     const float x = parser.value_float();
     if (WITHIN(x, -(X_BED_SIZE), X_BED_SIZE))
       offs.x = x;
@@ -69,7 +71,8 @@ void GcodeSuite::M851() {
     }
   }
 
-  if (parser.seenval('Y')) {
+  const bool has_y = parser.seenval('Y');
+  if (has_y) {
     const float y = parser.value_float();
     if (WITHIN(y, -(Y_BED_SIZE), Y_BED_SIZE))
       offs.y = y;
@@ -90,7 +93,11 @@ void GcodeSuite::M851() {
   }
 
   // Save the new offsets
-  if (ok) probe_offset = offs;
+  if (ok) {
+    probe_offset = offs;
+    if (has_x) set_probe_x_offset_mm(probe_offset.x);
+    if (has_y) set_probe_y_offset_mm(probe_offset.y);
+  }
 }
 
 /** @}*/

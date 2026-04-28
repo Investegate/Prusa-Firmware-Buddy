@@ -13,7 +13,9 @@ enum class ClickCommand : intptr_t { Return,
     Reset_Z,
     Reset_steps,
     Reset_directions,
-    Reset_currents };
+    Reset_currents,
+    Reset_probe_position,
+    Reset_load_unload };
 
 #if PRINTER_IS_PRUSA_MK3_5()
 // Option to switch off PWM correction to make Alte fans quiet. As of now, only MK3.5 has to deal with this issue
@@ -136,6 +138,85 @@ public:
     void Store();
 };
 
+class MI_PROBE_X_OFFSET : public WiSpin {
+public:
+    MI_PROBE_X_OFFSET();
+    void OnClick() override;
+};
+
+class MI_PROBE_Y_OFFSET : public WiSpin {
+public:
+    MI_PROBE_Y_OFFSET();
+    void OnClick() override;
+};
+
+class MI_RESET_PROBE_POSITION : public IWindowMenuItem {
+public:
+    MI_RESET_PROBE_POSITION();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_AUTO_FILAMENT_LOAD_LENGTH : public WiSpin {
+public:
+    MI_AUTO_FILAMENT_LOAD_LENGTH();
+    void OnClick() override;
+};
+
+class MI_AUTOLOAD_INSERT_LENGTH : public WiSpin {
+public:
+    MI_AUTOLOAD_INSERT_LENGTH();
+    void OnClick() override;
+};
+
+class MI_FILAMENT_UNLOAD_LENGTH : public WiSpin {
+public:
+    MI_FILAMENT_UNLOAD_LENGTH();
+    void OnClick() override;
+};
+
+class MI_UNLOAD_RAMMING_SCALE : public WiSpin {
+public:
+    MI_UNLOAD_RAMMING_SCALE();
+    void OnClick() override;
+};
+
+class MI_UNLOAD_COOLING_RETRACT : public WiSpin {
+public:
+    MI_UNLOAD_COOLING_RETRACT();
+    void OnClick() override;
+};
+
+
+class MI_RESET_LOAD_UNLOAD : public IWindowMenuItem {
+public:
+    MI_RESET_LOAD_UNLOAD();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_ENABLE_EEPROM_SAVE final : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    MI_ENABLE_EEPROM_SAVE();
+    void OnChange(size_t old_index) final;
+};
+
+class MI_ENABLE_PRINT_FINISH_MELODY final : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    MI_ENABLE_PRINT_FINISH_MELODY();
+    void OnChange(size_t old_index) final;
+};
+
+class MI_RESET_M500_TUNING : public IWindowMenuItem {
+public:
+    MI_RESET_M500_TUNING();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_RESET_CURRENTS : public IWindowMenuItem {
 public:
     MI_RESET_CURRENTS();
@@ -150,4 +231,11 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_FAST_DRAW_ENABLE final : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    MI_FAST_DRAW_ENABLE();
+
+    void OnChange(size_t) final;
 };

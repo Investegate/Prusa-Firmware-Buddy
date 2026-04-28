@@ -6,9 +6,11 @@
 #include "img_resources.hpp"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.hpp"
-#include "common/filament_sensors_handler.hpp"
+#include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include <utils/string_builder.hpp>
+#include "custom_firmware_ui.hpp"
 
+#include <option/bootloader.h>
 #include <option/has_mmu2.h>
 
 #if HAS_MMU2()
@@ -30,13 +32,25 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
         Item<MI_INFO_SERIAL_NUM>().ChangeInformation(sb.str());
     }
 
-    Item<MI_INFO_FW>().ChangeInformation(version::project_version_full);
+    {
+        ArrayStringBuilder<48> fw_version_ui;
+        fw_version_ui.append_string(version::project_version);
+        fw_version_ui.append_string(version::project_version_suffix_short);
+        fw_version_ui.append_string(custom_firmware_ui::mod_version_prefixed);
+        Item<MI_INFO_FW>().ChangeInformation(fw_version_ui.str());
+    }
+    {
+        Item<MI_INFO_CUSTOM_FW>().ChangeInformation(custom_firmware_ui::firmware_author_line);
+    }
 
     {
-        const version_t *bootloader_version = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
-
         ArrayStringBuilder<12> sb;
+#if BOOTLOADER()
+        const version_t *bootloader_version = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
         sb.append_printf("%d.%d.%d", bootloader_version->major, bootloader_version->minor, bootloader_version->patch);
+#else
+        sb.append_string("noboot");
+#endif
         Item<MI_INFO_BOOTLOADER>().ChangeInformation(sb.str());
     }
 

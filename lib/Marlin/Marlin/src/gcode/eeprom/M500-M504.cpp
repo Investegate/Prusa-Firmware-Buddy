@@ -24,6 +24,10 @@
 #include "../../module/configuration_store.h"
 #include "../../core/serial.h"
 #include "../../inc/MarlinConfig.h"
+#include "../../module/planner.h"
+#include <cmath>
+#include <config_store/store_c_api.h>
+#include <config_store/store_instance.hpp>
 
 /** \addtogroup G-Codes
  * @{
@@ -39,7 +43,46 @@
  *    M500
  */
 void GcodeSuite::M500() {
-  (void)settings.save();
+  if (get_enable_eeprom_save()) {
+    const auto &s = planner.settings;
+    const auto preserve_direction_sign = [](const float current_signed_steps, const float new_steps_magnitude) {
+      return std::signbit(current_signed_steps) ? -std::abs(new_steps_magnitude) : std::abs(new_steps_magnitude);
+    };
+    config_store().axis_steps_per_unit_x.set(preserve_direction_sign(config_store().axis_steps_per_unit_x.get(), s.axis_steps_per_mm[X_AXIS]));
+    config_store().axis_steps_per_unit_y.set(preserve_direction_sign(config_store().axis_steps_per_unit_y.get(), s.axis_steps_per_mm[Y_AXIS]));
+    config_store().axis_steps_per_unit_z.set(preserve_direction_sign(config_store().axis_steps_per_unit_z.get(), s.axis_steps_per_mm[Z_AXIS]));
+    config_store().axis_steps_per_unit_e0.set(preserve_direction_sign(config_store().axis_steps_per_unit_e0.get(), s.axis_steps_per_mm[E_AXIS]));
+
+    config_store().marlin_max_feedrate_x.set(s.max_feedrate_mm_s[X_AXIS]);
+    config_store().marlin_max_feedrate_y.set(s.max_feedrate_mm_s[Y_AXIS]);
+    config_store().marlin_max_feedrate_z.set(s.max_feedrate_mm_s[Z_AXIS]);
+    config_store().marlin_max_feedrate_e0.set(s.max_feedrate_mm_s[E_AXIS]);
+
+    config_store().marlin_max_acceleration_x.set(s.max_acceleration_mm_per_s2[X_AXIS]);
+    config_store().marlin_max_acceleration_y.set(s.max_acceleration_mm_per_s2[Y_AXIS]);
+    config_store().marlin_max_acceleration_z.set(s.max_acceleration_mm_per_s2[Z_AXIS]);
+    config_store().marlin_max_acceleration_e0.set(s.max_acceleration_mm_per_s2[E_AXIS]);
+
+    config_store().marlin_min_segment_time_us.set(s.min_segment_time_us);
+    config_store().marlin_acceleration.set(s.acceleration);
+    config_store().marlin_retract_acceleration.set(s.retract_acceleration);
+    config_store().marlin_travel_acceleration.set(s.travel_acceleration);
+    config_store().marlin_min_feedrate.set(s.min_feedrate_mm_s);
+    config_store().marlin_min_travel_feedrate.set(s.min_travel_feedrate_mm_s);
+#if HAS_CLASSIC_JERK
+    config_store().marlin_max_jerk_x.set(s.max_jerk.x);
+    config_store().marlin_max_jerk_y.set(s.max_jerk.y);
+    config_store().marlin_max_jerk_z.set(s.max_jerk.z);
+#if !HAS_LINEAR_E_JERK
+    config_store().marlin_max_jerk_e.set(s.max_jerk.e);
+#endif
+#else
+    config_store().marlin_junction_deviation_mm.set(planner.junction_deviation_mm);
+#endif
+
+    (void)settings.save();
+    config_store().save_all();
+  }
 }
 
 /**
@@ -52,7 +95,53 @@ void GcodeSuite::M500() {
  *    M501
  */
 void GcodeSuite::M501() {
-  (void)settings.load();
+  const auto saved_probe_offset = probe_offset;
+  (void)settings.reset();
+  auto s = planner.user_settings;
+  s.axis_steps_per_mm[X_AXIS] = std::abs(config_store().axis_steps_per_unit_x.get());
+  s.axis_steps_per_mm[Y_AXIS] = std::abs(config_store().axis_steps_per_unit_y.get());
+  s.axis_steps_per_mm[Z_AXIS] = std::abs(config_store().axis_steps_per_unit_z.get());
+  s.axis_steps_per_mm[E_AXIS] = std::abs(config_store().axis_steps_per_unit_e0.get());
+  LOOP_XYZE_N(i) {
+    s.axis_msteps_per_mm[i] = s.axis_steps_per_mm[i] * PLANNER_STEPS_MULTIPLIER;
+  }
+
+  s.max_feedrate_mm_s[X_AXIS] = config_store().marlin_max_feedrate_x.get();
+  s.max_feedrate_mm_s[Y_AXIS] = config_store().marlin_max_feedrate_y.get();
+  s.max_feedrate_mm_s[Z_AXIS] = config_store().marlin_max_feedrate_z.get();
+  s.max_feedrate_mm_s[E_AXIS] = config_store().marlin_max_feedrate_e0.get();
+
+  s.max_acceleration_mm_per_s2[X_AXIS] = config_store().marlin_max_acceleration_x.get();
+  s.max_acceleration_mm_per_s2[Y_AXIS] = config_store().marlin_max_acceleration_y.get();
+  s.max_acceleration_mm_per_s2[Z_AXIS] = config_store().marlin_max_acceleration_z.get();
+  s.max_acceleration_mm_per_s2[E_AXIS] = config_store().marlin_max_acceleration_e0.get();
+
+  s.min_segment_time_us = config_store().marlin_min_segment_time_us.get();
+  s.acceleration = config_store().marlin_acceleration.get();
+  s.retract_acceleration = config_store().marlin_retract_acceleration.get();
+  s.travel_acceleration = config_store().marlin_travel_acceleration.get();
+  s.min_feedrate_mm_s = config_store().marlin_min_feedrate.get();
+  s.min_travel_feedrate_mm_s = config_store().marlin_min_travel_feedrate.get();
+#if HAS_CLASSIC_JERK
+  s.max_jerk.x = config_store().marlin_max_jerk_x.get();
+  s.max_jerk.y = config_store().marlin_max_jerk_y.get();
+  s.max_jerk.z = config_store().marlin_max_jerk_z.get();
+#if !HAS_LINEAR_E_JERK
+  s.max_jerk.e = config_store().marlin_max_jerk_e.get();
+#endif
+#else
+  planner.junction_deviation_mm = config_store().marlin_junction_deviation_mm.get();
+#endif
+  planner.apply_settings(s);
+  planner.refresh_positioning();
+#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+  char gcode_buffer[64];
+  snprintf(gcode_buffer, sizeof(gcode_buffer), "M851 X%f Y%f Z%f", static_cast<double>(saved_probe_offset.x), static_cast<double>(saved_probe_offset.y), static_cast<double>(saved_probe_offset.z));
+  process_subcommands_now(gcode_buffer);
+#else
+  probe_offset = saved_probe_offset;
+#endif
+  (void)settings.report();
 }
 
 /**
@@ -65,7 +154,9 @@ void GcodeSuite::M501() {
  *    M502
  */
 void GcodeSuite::M502() {
+  const float saved_probe_offset_z = probe_offset.z;
   (void)settings.reset();
+  probe_offset.z = saved_probe_offset_z;
 }
 
 #if DISABLED(DISABLE_M503)

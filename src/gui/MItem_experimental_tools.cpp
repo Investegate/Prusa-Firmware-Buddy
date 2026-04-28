@@ -6,9 +6,14 @@
 #include "MItem_experimental_tools.hpp"
 #include "WindowMenuSpin.hpp"
 #include "ScreenHandler.hpp"
+#include "marlin_client.hpp"
 #include "string.h" // memcmp
 #include "img_resources.hpp"
 #include <gui/menu_vars.h>
+#include <config_store/store_c_api.h>
+#include <config_store/store_instance.hpp>
+#include <module/planner.h>
+#include <cmath>
 
 #if PRINTER_IS_PRUSA_MK3_5()
 /*****************************************************************************/
@@ -192,6 +197,222 @@ void MI_CURRENT_E::Store() {
     set_rms_current_ma_e(GetVal());
 }
 
+static constexpr NumericInputConfig probe_offset_spin_config = {
+    .min_value = -100,
+    .max_value = 100,
+    .unit = Unit::millimeter,
+};
+
+// Custom LGX/mod entries are intentionally colorized to distinguish them
+// from native firmware items in the same Experimental menu.
+static constexpr IWindowMenuItem::ColorScheme custom_mod_orange_scheme {
+    .text = {
+        .focused = COLOR_ORANGE,
+        .unfocused = COLOR_ORANGE,
+    },
+};
+
+MI_PROBE_X_OFFSET::MI_PROBE_X_OFFSET()
+    : WiSpin(get_probe_x_offset_mm(), probe_offset_spin_config, _("Probe X position")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_PROBE_X_OFFSET::OnClick() {
+    const float offset = value();
+    set_probe_x_offset_mm(offset);
+    marlin_client::gcode_printf("M851 X%f", static_cast<double>(offset));
+}
+
+MI_PROBE_Y_OFFSET::MI_PROBE_Y_OFFSET()
+    : WiSpin(get_probe_y_offset_mm(), probe_offset_spin_config, _("Probe Y position")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_PROBE_Y_OFFSET::OnClick() {
+    const float offset = value();
+    set_probe_y_offset_mm(offset);
+    marlin_client::gcode_printf("M851 Y%f", static_cast<double>(offset));
+}
+
+MI_RESET_PROBE_POSITION::MI_RESET_PROBE_POSITION()
+    : IWindowMenuItem(_("Reset probe position")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_RESET_PROBE_POSITION::click([[maybe_unused]] IWindowMenu &window_menu) {
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_probe_position);
+}
+
+static constexpr NumericInputConfig filament_length_spin_config = {
+    .min_value = 1,
+    .max_value = 1000,
+    .unit = Unit::millimeter,
+};
+
+static constexpr NumericInputConfig filament_unload_length_spin_config = {
+    .min_value = 1,
+    .max_value = 199,
+    .unit = Unit::millimeter,
+};
+
+MI_AUTO_FILAMENT_LOAD_LENGTH::MI_AUTO_FILAMENT_LOAD_LENGTH()
+    : WiSpin(get_auto_filament_load_length_mm(), filament_length_spin_config, _("Fast load length")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_AUTO_FILAMENT_LOAD_LENGTH::OnClick() {
+    set_auto_filament_load_length_mm(value());
+}
+
+MI_AUTOLOAD_INSERT_LENGTH::MI_AUTOLOAD_INSERT_LENGTH()
+    : WiSpin(get_autoload_insert_length_mm(), filament_length_spin_config, _("Initial insert length")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_AUTOLOAD_INSERT_LENGTH::OnClick() {
+    set_autoload_insert_length_mm(value());
+}
+
+MI_FILAMENT_UNLOAD_LENGTH::MI_FILAMENT_UNLOAD_LENGTH()
+    : WiSpin(get_filament_unload_length_mm(), filament_unload_length_spin_config, _("Unload length")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_FILAMENT_UNLOAD_LENGTH::OnClick() {
+    set_filament_unload_length_mm(value());
+}
+
+static constexpr NumericInputConfig unload_ramming_scale_spin_config = {
+    .min_value = 0,
+    .max_value = 150,
+    .unit = Unit::percent,
+};
+
+MI_UNLOAD_RAMMING_SCALE::MI_UNLOAD_RAMMING_SCALE()
+    : WiSpin(get_unload_ramming_scale_percent(), unload_ramming_scale_spin_config, _("Unload ramming scale")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_UNLOAD_RAMMING_SCALE::OnClick() {
+    set_unload_ramming_scale_percent(value());
+}
+
+static constexpr NumericInputConfig unload_cooling_retract_spin_config = {
+    .min_value = 0,
+    .max_value = 20,
+    .unit = Unit::millimeter,
+};
+
+MI_UNLOAD_COOLING_RETRACT::MI_UNLOAD_COOLING_RETRACT()
+    : WiSpin(get_unload_cooling_retract_mm(), unload_cooling_retract_spin_config, _("Unload cooling retract")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_UNLOAD_COOLING_RETRACT::OnClick() {
+    set_unload_cooling_retract_mm(value());
+}
+
+MI_RESET_LOAD_UNLOAD::MI_RESET_LOAD_UNLOAD()
+    : IWindowMenuItem(_("Reset load/unload")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_RESET_LOAD_UNLOAD::click([[maybe_unused]] IWindowMenu &window_menu) {
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_load_unload);
+}
+
+MI_ENABLE_EEPROM_SAVE::MI_ENABLE_EEPROM_SAVE()
+    : WI_ICON_SWITCH_OFF_ON_t(get_enable_eeprom_save(), _("Enable EEPROM save")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_ENABLE_EEPROM_SAVE::OnChange([[maybe_unused]] size_t old_index) {
+    set_enable_eeprom_save(value());
+}
+
+MI_ENABLE_PRINT_FINISH_MELODY::MI_ENABLE_PRINT_FINISH_MELODY()
+    : WI_ICON_SWITCH_OFF_ON_t(get_enable_print_finish_melody(), _("Print finish melody")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_ENABLE_PRINT_FINISH_MELODY::OnChange([[maybe_unused]] size_t old_index) {
+    set_enable_print_finish_melody(value());
+}
+
+MI_RESET_M500_TUNING::MI_RESET_M500_TUNING()
+    : IWindowMenuItem(_("Reset M500 tuning")) {
+    set_color_scheme(&custom_mod_orange_scheme);
+}
+
+void MI_RESET_M500_TUNING::click([[maybe_unused]] IWindowMenu &window_menu) {
+    config_store().axis_steps_per_unit_x.set(config_store().axis_steps_per_unit_x.default_val);
+    config_store().axis_steps_per_unit_y.set(config_store().axis_steps_per_unit_y.default_val);
+    config_store().axis_steps_per_unit_z.set(config_store().axis_steps_per_unit_z.default_val);
+    config_store().marlin_max_feedrate_x.set(config_store().marlin_max_feedrate_x.default_val);
+    config_store().marlin_max_feedrate_y.set(config_store().marlin_max_feedrate_y.default_val);
+    config_store().marlin_max_feedrate_z.set(config_store().marlin_max_feedrate_z.default_val);
+    config_store().marlin_max_feedrate_e0.set(config_store().marlin_max_feedrate_e0.default_val);
+    config_store().marlin_max_acceleration_x.set(config_store().marlin_max_acceleration_x.default_val);
+    config_store().marlin_max_acceleration_y.set(config_store().marlin_max_acceleration_y.default_val);
+    config_store().marlin_max_acceleration_z.set(config_store().marlin_max_acceleration_z.default_val);
+    config_store().marlin_max_acceleration_e0.set(config_store().marlin_max_acceleration_e0.default_val);
+    config_store().marlin_min_segment_time_us.set(config_store().marlin_min_segment_time_us.default_val);
+    config_store().marlin_acceleration.set(config_store().marlin_acceleration.default_val);
+    config_store().marlin_retract_acceleration.set(config_store().marlin_retract_acceleration.default_val);
+    config_store().marlin_travel_acceleration.set(config_store().marlin_travel_acceleration.default_val);
+    config_store().marlin_min_feedrate.set(config_store().marlin_min_feedrate.default_val);
+    config_store().marlin_min_travel_feedrate.set(config_store().marlin_min_travel_feedrate.default_val);
+#if HAS_CLASSIC_JERK
+    config_store().marlin_max_jerk_x.set(config_store().marlin_max_jerk_x.default_val);
+    config_store().marlin_max_jerk_y.set(config_store().marlin_max_jerk_y.default_val);
+    config_store().marlin_max_jerk_z.set(config_store().marlin_max_jerk_z.default_val);
+#if !HAS_LINEAR_E_JERK
+    config_store().marlin_max_jerk_e.set(config_store().marlin_max_jerk_e.default_val);
+#endif
+#else
+    config_store().marlin_junction_deviation_mm.set(config_store().marlin_junction_deviation_mm.default_val);
+#endif
+    config_store().save_all();
+
+    auto s = planner.user_settings;
+    s.axis_steps_per_mm[X_AXIS] = std::abs(config_store().axis_steps_per_unit_x.get());
+    s.axis_steps_per_mm[Y_AXIS] = std::abs(config_store().axis_steps_per_unit_y.get());
+    s.axis_steps_per_mm[Z_AXIS] = std::abs(config_store().axis_steps_per_unit_z.get());
+    s.axis_steps_per_mm[E_AXIS] = std::abs(planner.settings.axis_steps_per_mm[E_AXIS]);
+    LOOP_XYZE_N(i) {
+        s.axis_msteps_per_mm[i] = s.axis_steps_per_mm[i] * PLANNER_STEPS_MULTIPLIER;
+    }
+
+    s.max_feedrate_mm_s[X_AXIS] = config_store().marlin_max_feedrate_x.get();
+    s.max_feedrate_mm_s[Y_AXIS] = config_store().marlin_max_feedrate_y.get();
+    s.max_feedrate_mm_s[Z_AXIS] = config_store().marlin_max_feedrate_z.get();
+    s.max_feedrate_mm_s[E_AXIS] = config_store().marlin_max_feedrate_e0.get();
+
+    s.max_acceleration_mm_per_s2[X_AXIS] = config_store().marlin_max_acceleration_x.get();
+    s.max_acceleration_mm_per_s2[Y_AXIS] = config_store().marlin_max_acceleration_y.get();
+    s.max_acceleration_mm_per_s2[Z_AXIS] = config_store().marlin_max_acceleration_z.get();
+    s.max_acceleration_mm_per_s2[E_AXIS] = config_store().marlin_max_acceleration_e0.get();
+
+    s.min_segment_time_us = config_store().marlin_min_segment_time_us.get();
+    s.acceleration = config_store().marlin_acceleration.get();
+    s.retract_acceleration = config_store().marlin_retract_acceleration.get();
+    s.travel_acceleration = config_store().marlin_travel_acceleration.get();
+    s.min_feedrate_mm_s = config_store().marlin_min_feedrate.get();
+    s.min_travel_feedrate_mm_s = config_store().marlin_min_travel_feedrate.get();
+#if HAS_CLASSIC_JERK
+    s.max_jerk.x = config_store().marlin_max_jerk_x.get();
+    s.max_jerk.y = config_store().marlin_max_jerk_y.get();
+    s.max_jerk.z = config_store().marlin_max_jerk_z.get();
+#if !HAS_LINEAR_E_JERK
+    s.max_jerk.e = config_store().marlin_max_jerk_e.get();
+#endif
+#else
+    planner.junction_deviation_mm = config_store().marlin_junction_deviation_mm.get();
+#endif
+    planner.apply_settings(s);
+    planner.refresh_positioning();
+}
+
 /*****************************************************************************/
 // MI_RESET_CURRENTS
 MI_RESET_CURRENTS::MI_RESET_CURRENTS()
@@ -210,4 +431,20 @@ MI_SAVE_AND_RETURN::MI_SAVE_AND_RETURN()
 
 void MI_SAVE_AND_RETURN::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Return);
+}
+
+/*****************************************************************************/
+// MI_FAST_DRAW_ENABLE
+// If this is put outside of ScreenMenuExperimental (that resets the printer
+// after exiting), the config_store().fast_draw_enabled usage in ili9488
+// must be reworked to not store the result in a static variable.
+MI_FAST_DRAW_ENABLE::MI_FAST_DRAW_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t {
+        config_store().fast_draw_enabled.get(),
+        // translation: experimental menu item enabling faster display routines
+        _("Fast Draw"),
+    } {
+}
+void MI_FAST_DRAW_ENABLE::OnChange(size_t) {
+    config_store().fast_draw_enabled.set(value());
 }
