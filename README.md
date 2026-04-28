@@ -108,6 +108,36 @@ Use these settings carefully and change only one value at a time. After changing
 
 ---
 
+## Screenshots
+
+### Start screen
+
+<p align="center">
+  <img width="500" alt="MK3.5S custom firmware splash screen" src="https://github.com/user-attachments/assets/7ae30dd3-a4a3-40b7-a4a4-4843b3109d40" />
+</p>
+
+Screenshot of the custom splash / boot screen.
+
+### Experimental menu - custom mod options
+
+<p align="center">
+  <img width="500" alt="MK3.5S custom menu probe settings" src="https://github.com/user-attachments/assets/035324a1-8502-4695-8bfc-32ce0ec649df" />
+</p>
+
+<p align="center">
+  <img width="500" alt="MK3.5S custom menu load unload settings" src="https://github.com/user-attachments/assets/ff8a2df2-1bc1-4a9b-ba1d-2f15ba220f78" />
+</p>
+
+<p align="center">
+  <img width="500" alt="MK3.5S custom menu reset M500 settings" src="https://github.com/user-attachments/assets/1835a496-3eb1-496f-a61c-a0ba06f1bb59" />
+</p>
+
+Screenshots showing the new Experimental menu entries added by this mod.
+
+All custom mod options are highlighted in **orange**.
+
+---
+
 ## Main features
 
 ### Custom firmware branding / splash text
