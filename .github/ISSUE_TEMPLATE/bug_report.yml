@@ -1,74 +1,113 @@
 name: Bug report
-description: File a bug report
-title: '[BUG] '
-labels:
-  - bug
+description: Report a reproducible problem with the INVESTEGATE custom firmware.
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Before you create a new bug report, please check if an issue with it already exists (either open or closed) by using the search bar on the issues page. If it does, comment there. Even if it's closed, we can reopen it based on your comment.
+        Thank you for reporting a bug.
+
+        Please only use this form for reproducible problems with the INVESTEGATE custom firmware.
+        Before submitting, make sure you are using the latest release and include the requested printer information.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-checks
+      options:
+        - label: I am using an INVESTEGATE custom firmware release, not stock Prusa firmware.
+          required: true
+        - label: I have checked the latest release notes.
+          required: true
+        - label: I understand this is unofficial custom firmware.
+          required: true
+
   - type: input
-    id: printer_model
+    id: firmware-version
+    attributes:
+      label: Firmware version / file
+      description: "Example: mk3.5_firmware_6.5.3_MODv1.0.bbf"
+      placeholder: "mk3.5_firmware_6.5.3_MODv1.0.bbf"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: printer-model
     attributes:
       label: Printer model
-      description: Enter the printer model(s) where you encountered the issue
-      placeholder: 'MK4, XL Single/Multi tool, Mini+, ...'
+      options:
+        - Original Prusa MK3.5
+        - Original Prusa MK3.5S
+        - Other / unsure
     validations:
       required: true
+
   - type: input
-    id: firmware_version
+    id: extruder-hotend
     attributes:
-      label: Firmware version
-      description: |
-        If you're using a custom firmware (not downloaded from Prusa), please note that!
-      placeholder: '6.0.0, 6.1.0-alpha, ...'
+      label: Extruder / hotend setup
+      description: "Example: Bondtech LGX Shortcut, stock hotend, Mosquito, Revo, etc."
+      placeholder: "Bondtech LGX Shortcut"
     validations:
       required: true
-  - type: input
-    id: optional_upgrades
+
+  - type: textarea
+    id: problem
     attributes:
-      label: Upgrades and modifications
-      description: 'If your printer has upgrades or was modified, please note that!  If not, please write None or leave blank.'
-      placeholder: |
-        None, filament runout sensor (Mini), custom extruder/hotend (which), ...
-  - type: input
-    id: printing_from
-    attributes:
-      label: Printing from...
-      placeholder: 'USB drive, USB cable/Octoprint, PrusaLink, Prusa Connect, ...'
+      label: Problem description
+      description: What happened?
+      placeholder: Describe the problem clearly.
     validations:
       required: true
+
   - type: textarea
-    id: description
-    attributes:
-      label: Describe the bug
-      description: Write a concise description of the bug.
-    validations:
-      required: true
-  - type: textarea
-    id: reproduction
-    attributes:
-      label: How to reproduce
-      description: |
-        If you are able to reproduce the issue - meaning that you can trigger it yourself by following certain steps - please describe the step-by-step process in as much detail as possible!
-  - type: textarea
-    id: expected_behavior
+    id: expected
     attributes:
       label: Expected behavior
-      description: |
-        If the printer did something unexpected, or if the procedure is missing a step that would resolve the issue, please provide a step-by-step process of how it should behave.
+      description: What did you expect to happen?
+    validations:
+      required: true
+
   - type: textarea
-    id: files
+    id: reproduce
     attributes:
-      label: Files
-      description: |
-        Provide at least one of these (ideally as many as you can) to help developers track down the bug.
-        *To upload files, compress them into a .zip file and drag them to the text area to upload.* Images and videos can be uploaded directly.
+      label: Steps to reproduce
+      description: List exact steps so the issue can be reproduced.
+      placeholder: |
+        1. Open ...
+        2. Set ...
+        3. Start ...
+        4. Observe ...
+    validations:
+      required: true
 
-        - **gcode** file
-        - **3mf project** which includes the model and printer settings
-        - **video** or **photos** of the issue happening
+  - type: textarea
+    id: m503
+    attributes:
+      label: Relevant M503 output
+      description: "Paste relevant M503 output. At minimum include M851, M92, M906 and M603 if available."
+      render: text
+      placeholder: |
+        M851 ...
+        M92 ...
+        M906 ...
+        M603 ...
+    validations:
+      required: false
 
-        **Crash dump: Do not share the file publicly**, as the crash dump contains a raw snapshot of the printer's memory and may include unencrypted sensitive information.
-        Please send the crash dump file to Prusa by emailing it to reports@prusa3d.com and referencing this issue. Sharing this file is important and helps us investigate the bug.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, terminal output, photos or videos
+      description: Add serial output, PrusaLink/Connect messages, screenshots, photos or videos if helpful.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else that may help.
+    validations:
+      required: false
