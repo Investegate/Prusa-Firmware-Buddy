@@ -1,3 +1,5 @@
+<img width="3000" height="2083" alt="investegate PRO HD TEXT NEW 3D" src="https://github.com/user-attachments/assets/438f9018-5cde-41fb-ad1c-7a3008f28160" />
+
 # INVESTEGATE Custom Firmware for Prusa MK3.5 / MK3.5S
 
 Unofficial custom firmware for the **Original Prusa MK3.5 / MK3.5S**, based on official **Prusa-Firmware-Buddy v6.5.3**.
