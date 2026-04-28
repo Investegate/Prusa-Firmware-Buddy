@@ -1,29 +1,72 @@
 name: Feature request
-description: Suggest new functionality
-title: '[FEATURE REQUEST] '
-labels:
-  - feature request
+description: Suggest an improvement or new feature for the INVESTEGATE custom firmware.
+title: "[FEATURE] "
+labels: ["enhancement", "feature-request", "needs-triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Before you create a new feature request, please check if an issue with it already exists (either open or closed) by using the search bar on the issues page.
-  - type: input
-    id: printer_model
+        Use this form for feature requests, ideas and improvements.
+
+        Please keep requests focused and explain the real use case. Safety-critical hardware features need careful development and real testing.
+
+  - type: dropdown
+    id: area
     attributes:
-      label: Printer model
-      description: Enter the printer model(s) where you would like this feature
-      placeholder: 'MK4, XL Single/Multi tool, Mini+, ...'
-  - type: textarea
-    id: description
-    attributes:
-      label: Describe the feature
-      description: How would this feature improve the printer? Are there specific use cases where this would be beneficial? Describe how you would use it.
+      label: Feature area
+      options:
+        - LGX / third-party extruder support
+        - Load / unload behavior
+        - M600 / filament change
+        - Probe / M851 handling
+        - E-steps / microsteps
+        - Extruder current
+        - Heater / thermistor support
+        - Motion limits
+        - UI / menu / labels
+        - Other
     validations:
       required: true
+
   - type: textarea
-    id: expected_functionality
+    id: request
     attributes:
-      label: Expected functionality
-      description: |
-        Describe the way the feature would work. You can also describe it in a step-by-step basis if applicable.
+      label: Feature request
+      description: What should be added or changed?
+      placeholder: Describe the feature clearly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: Why is this useful? What problem does it solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Relevant hardware
+      description: List printer, extruder, hotend, heater, thermistor or other hardware if relevant.
+      placeholder: MK3.5S, Bondtech LGX Shortcut, ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety considerations
+      description: If this affects temperature, motion, current or hardware limits, describe the risks and needed tests.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution / testing
+      options:
+        - label: I can help test this feature on real hardware.
+        - label: I can help with development or code review.
+        - label: I only want to suggest the idea.

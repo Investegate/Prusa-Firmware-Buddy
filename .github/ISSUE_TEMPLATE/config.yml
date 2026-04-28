@@ -1,11 +1,11 @@
-contact_links:
-  - name: Do you need Support?
-    url: https://help.prusa3d.com/article/customer-support_2287
-    about: If you are not sure whether what you are reporting is a bug, please contact our support team first. We are providing full 24/7 customer support.
-  - name: Knowledge Base
-    url: https://help.prusa3d.com/
-    about: We have a comprehensive help documentation that could be helpful for troubleshooting.
-  - name: Prusa Forum
-    url: https://forum.prusa3d.com/
-    about: Please get in touch on our Prusa Forum! (Not an official support channel)
 blank_issues_enabled: false
+contact_links:
+  - name: Download latest firmware release
+    url: https://github.com/Investegate/Prusa-Firmware-Buddy/releases/
+    about: Download the latest tested BBF firmware release here.
+  - name: Official Prusa custom firmware flashing instructions
+    url: https://help.prusa3d.com/article/flashing-custom-firmware-core-one-l-core-one-mk4-s-mk3-9-s-mk3-5-s_814967
+    about: Read this before flashing unofficial custom firmware.
+  - name: INVESTEGATE Blog
+    url: https://investegate.de/blog
+    about: Related articles, guides and 3D printing projects.

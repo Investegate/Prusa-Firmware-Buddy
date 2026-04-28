@@ -1,3 +1,19 @@
+# License notice for INVESTEGATE Custom Firmware
+
+This repository is a modified fork of the official Prusa-Firmware-Buddy project by Prusa Research.
+
+The INVESTEGATE Custom Firmware v1.0 for Original Prusa MK3.5 / MK3.5S is based on official Prusa-Firmware-Buddy v6.5.3 and includes custom changes for LGX / third-party extruder tuning.
+
+The original Prusa-Firmware-Buddy license terms remain in effect.
+
+Firmware source code is licensed under the GNU General Public License v3.0 unless otherwise stated by upstream files.
+
+Graphics, design assets and fonts may be subject to additional licenses as described below and in the upstream project.
+
+Original Prusa, Prusa Research and related product names are trademarks of Prusa Research a.s. / Prusa Research s.r.o. This custom firmware is unofficial and is not made, approved or supported by Prusa Research.
+
+---
+
 This firmware for the Original Prusa MINI, Original Prusa MK4 and the Original Prusa XL is distributed under the following licenses:
 
 - The firmware source code is licensed under the GNU General Public License v3.0. Meaning you and your company can use the code both for the commercial and non-commercial activities, but you have to fulfil the requirements of the license. Read more about the permissions and limitations below.

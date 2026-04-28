@@ -1,131 +1,636 @@
-# Buddy
-This repository includes source code and firmware releases for the Original Prusa 3D printers based on the 32-bit ARM microcontrollers.
+<p align="center">
+  <img width="900" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/438f9018-5cde-41fb-ad1c-7a3008f28160" />
+</p>
 
-The currently supported models are:
-- Original Prusa MINI/MINI+
+# INVESTEGATE Custom Firmware for Prusa MK3.5 / MK3.5S
+
+Unofficial custom firmware for the **Original Prusa MK3.5 / MK3.5S**, based on official **Prusa-Firmware-Buddy v6.5.3**.
+
+This firmware adds experimental tuning options for **Bondtech LGX / LGX Shortcut** and similar third-party extruder setups while keeping the original Prusa firmware behavior as close as possible.
+
+More information, documentation and related 3D printing projects: <strong><a href="https://investegate.de">INVESTEGATE.de</a></strong>
+
+---
+
+## Latest release
+
+Current release:
+
+**v1.0 / 6.5.3 MOD v1.0**
+
+Download the firmware from the GitHub Releases page:
+
+[Download 6.5.3 MOD v1.0](https://github.com/Investegate/Prusa-Firmware-Buddy/releases/tag/v1.0)
+
+Firmware file:
+
+`mk3.5_firmware_6.5.3_MODv1.0.bbf`
+
+Do **not** use the automatically generated source code ZIP/TAR files for flashing.
+
+---
+
+## Compatibility
+
+Supported printers:
+
 - Original Prusa MK3.5
-- Original Prusa MK3.9
-- Original Prusa MK4
-- Original Prusa XL
-- Prusa CORE One
+- Original Prusa MK3.5S
 
-## Getting Started
+Base firmware:
 
-### Requirements
+- Official Prusa-Firmware-Buddy v6.5.3
 
-- Python 3.8 or newer
-- system installation of Python's `requests` package (use either pip or your system package manager)
+Build target:
 
-### Cloning this repository
+- `mk3.5_release_boot`
 
-Run `git clone https://github.com/prusa3d/Prusa-Firmware-Buddy.git`.
+---
 
-### Building (on all platforms, without an IDE)
+## Important warning
 
-Run `python utils/build.py`. The binaries are then going to be stored under `./build/products`.
+This is **unofficial custom firmware**.
 
-- Without any arguments, it will build a release version of the firmware for all supported printers and bootloader settings.
-- Use `--build-type` to select build configurations to be built (`debug`, `release`).
-- Use `--preset` to select for which printers the firmware should be built.
-- By default, it will build the firmware in "prerelease mode" set to `beta`. You can change the prerelease using `--prerelease alpha`, or use `--final` to build a final version of the firmware.
-- Use `--host-tools` to include host tools in the build (`png2font`, ...)
-- Find more options using the `--help` flag!
+Use it at your own risk.
 
-#### Examples:
+Before flashing, save your current printer settings and calibration values.
 
-Build the firmware for MINI and XL in `debug` mode:
+After flashing, verify your settings and run a small test print before normal use.
 
-```bash
-python utils/build.py --preset mini,xl --build-type debug
+---
+
+## Custom firmware flashing / appendix seal
+
+Prusa MK3.5 / MK3.5S printers accept only officially signed firmware in their factory state.
+
+To install unofficial custom firmware, the **appendix seal on the xBuddy board must be broken first**.
+
+According to Prusa, breaking this seal does **not** void the printer warranty. However, custom firmware is unofficial, and Prusa does not take responsibility for damage caused by unofficial firmware.
+
+Official Prusa instructions: [Flashing custom firmware - Prusa Help](https://help.prusa3d.com/article/flashing-custom-firmware-core-one-l-core-one-mk4-s-mk3-9-s-mk3-5-s_814967)
+
+---
+
+## Installation
+
+The easiest way to transfer the firmware to the printer is via **Prusa Connect**.
+
+Flashing via **USB** is also possible.
+
+When the flashing process begins, the printer will show a warning that **unsigned firmware** was detected.
+
+Select **Ignore** to continue with the installation.
+
+In testing, the printer retained all previous calibration values after flashing. This also worked when downgrading again.
+
+Even so, it is strongly recommended to save your current values before flashing.
+
+---
+
+## How to open the Experimental menu
+
+On the printer, open **Settings**.
+
+Then press and hold **Return** until the **Experimental Settings** menu opens.
+
+### Testing status / color meaning
+
+- 🟧 **Orange** = custom options from this mod  
+  These options were successfully and thoroughly tested. No errors were found during testing.
+
+- 🟩 **Green** = Prusa developer options  
+  These are existing developer options from Prusa and are not part of this mod itself.
+
+- 🟥 **Red** = planned future custom options  
+  Future features that are not yet fully tested will later be shown in red until they have been thoroughly validated in real use.
+
+Use these settings carefully and change only one value at a time. After changing filament handling or probe settings, run a small test print before normal use.
+
+---
+
+## Screenshots
+
+### Start screen
+
+<p align="center">
+  <img width="500" alt="MK3.5S custom firmware splash screen" src="https://github.com/user-attachments/assets/7ae30dd3-a4a3-40b7-a4a4-4843b3109d40" />
+</p>
+
+Screenshot of the custom splash / boot screen.
+
+### Experimental menu - custom mod options
+
+<p align="center">
+  <img width="500" alt="MK3.5S custom menu probe settings" src="https://github.com/user-attachments/assets/035324a1-8502-4695-8bfc-32ce0ec649df" />
+</p>
+
+<p align="center">
+  <img width="500" alt="MK3.5S custom menu load unload settings" src="https://github.com/user-attachments/assets/ff8a2df2-1bc1-4a9b-ba1d-2f15ba220f78" />
+</p>
+
+<p align="center">
+  <img width="500" alt="MK3.5S custom menu reset M500 settings" src="https://github.com/user-attachments/assets/1835a496-3eb1-496f-a61c-a0ba06f1bb59" />
+</p>
+
+Screenshots showing the new Experimental menu entries added by this mod.
+
+All custom mod options are highlighted in **orange**.
+
+---
+
+## Main features
+
+### Custom firmware branding / splash text
+
+Adds a small custom firmware text to the boot / splash screen.
+
+The original Prusa branding and boot behavior were intentionally kept as close to stock as possible.
+
+---
+
+### Custom Experimental Menu entries
+
+Additional custom settings were added to the Experimental menu.
+
+Custom mod entries are highlighted in **orange** to visually separate them from native Prusa menu items.
+
+Added / modified entries include:
+
+- Print finish melody
+- Probe X position
+- Probe Y position
+- Reset probe position
+- Initial insert length
+- Fast load length
+- Unload length
+- Unload cooling retract
+- Unload ramming scale
+- Reset load/unload
+- Enable EEPROM save
+- Reset M500 tuning
+
+---
+
+### Probe X/Y position controls
+
+This release adds direct M851 X/Y controls:
+
+- Probe X position
+- Probe Y position
+- Reset probe position
+
+These are **direct M851 X/Y values**, not relative offsets.
+
+Stock Prusa default:
+
+```gcode
+M851 X23.00 Y5.00
 ```
 
-Build the firmware for MINI using a custom version of gcc-arm-none-eabi (available in `$PATH`) and use `Make` instead of `Ninja` (not recommended):
+Recommended Bondtech LGX / LGX Shortcut value:
 
-```bash
-python utils/build.py --preset mini --toolchain cmake/AnyGccArmNoneEabi.cmake --generator 'Unix Makefiles'
+```gcode
+M851 X23.00 Y12.00
 ```
 
-#### Windows 10 troubleshooting
+Important:
 
-If you have python installed and in your PATH but still getting cmake error `Python3 not found.` Try running python and python3 from cmd. If one of it opens Microsoft Store instead of either opening python interpreter or complaining `'python3' is not recognized as an internal or external command,
-operable program or batch file.` Open `manage app execution aliases` and disable `App Installer` association with `python.exe` and `python3.exe`.
+`M851 Z` / Live-Z is not changed by these menu controls.
 
-### Development
+Do not blindly copy Z values from another printer. Z / Live-Z is printer-specific and must be calibrated on your own machine.
 
-The build process of this project is driven by CMake and `build.py` is just a high-level wrapper around it. As most modern IDEs support some kind of CMake integration, it should be possible to use almost any editor for development. Below are some documents describing how to setup some popular text editors.
+Example only:
 
-- [Visual Studio Code](doc/editor/vscode.md)
-- [Vim](doc/editor/vim.md)
-- [Eclipse, STM32CubeIDE](doc/editor/stm32cubeide.md)
-- [Other LSP-based IDEs (Atom, Sublime Text, ...)](doc/editor/lsp-based-ides.md)
+```gcode
+M851 X23.00 Y12.00 Z-1.50
+```
 
-#### Contributing
+Your Z value will likely be different.
 
-If you want to contribute to the codebase, please read the [Contribution Guidelines](doc/contributing.md).
+---
 
-#### XL and Puppies
+### Reset probe position
 
-With the XL, the situation gets a bit more complex. The firmware of XLBuddy contains firmwares for the puppies (Dwarf and Modularbed) to flash them when necessary. We support several ways of dealing with those firmwares when developing:
+`Reset probe position` resets only Probe X/Y to Prusa defaults:
 
-1. Build Dwarf/Modularbed firmware automatically and flash it on startup by XLBuddy (the default)
-    - The Dwarf & ModularBed firmware will be built from this repo.
-    - The puppies are going to be flashed on startup by the XLBuddy. The puppies have to be running the [Puppy Bootloader](http://github.com/prusa3d/Prusa-Bootloader-Puppy).
+```gcode
+M851 X23.00 Y5.00
+```
 
-2. Build Dwarf/Modularbed from a given source directory and flash it on startup by XLBuddy.
-    - Specify `DWARF_SOURCE_DIR`/`MODULARBED_SOURCE_DIR` CMake cache variable with the local repo you want to use.
-    - Example below would build modularbed's firmware from /Projects/Prusa-Firmware-Buddy-ModularBed and include it in the xlBuddy firmware.
-    ```
-    cmake .. --preset xl_release_boot -DMODULARBED_SOURCE_DIR=/Projects/Prusa-Firmware-Buddy-ModularBed
-    ```
-    - You can also specify the build directory you want to use:
-    ```
-    cmake .. --preset xl_release_boot \
-        -DMODULARBED_SOURCE_DIR=/Projects/Prusa-Firmware-Buddy-ModularBed  \
-        -DMODULARBED_BINARY_DIR=/Projects/Prusa-Firmware-Buddy-ModularBed/build
-    ```
-3. Use pre-built Dwarf/Modularbed firmware and flash it on startup by xlBuddy
-    - Specify the location of the .bin file with `DWARF_BINARY_PATH`/`MODULARBED_BINARY_PATH`.
-    - For example
-    ```
-    cmake .. --preset xl_release_boot -DDWARF_BINARY_PATH=/Downloads/dwarf-4.4.0-boot.bin
-    ```
+It does **not** change:
 
-4. Do not include any puppy firmware, and do not flash the puppies by XLBuddy.
-    ```
-    -DENABLE_PUPPY_BOOTLOAD=NO
-    ```
-    - With the `ENABLE_PUPPY_BOOTLOAD` set to false, the project will disable Puppy flashing & interaction with Puppy bootloaders.
-    - It is up to you to flash the correct firmware to the puppies (noboot variant).
+- M851 Z / Live-Z
+- Load / unload values
+- M500 tuning values
+- E-steps
+- Stepper current
+- Axis direction
+- Print finish melody
+- EEPROM save setting
 
-5. Keep bootloaders but do not write firmware on boot.
-    ```
-    -DPUPPY_SKIP_FLASH_FW=YES
-    ```
-    - With the `PUPPY_SKIP_FLASH_FW` set to true, the project will disable Puppy flashing on boot.
-    - You can keep other puppies that are not debugged in the same state as before.
-    - Use puppy build config with bootloaders (e.g. `xl-dwarf_debug_boot`) on one or more puppies.
-    - Recommend breakpoint at the end of `puppy_task_body()` to prevent buddy from resetting the puppy immediately when puppy stops on breakpoint.
+---
 
-See /ProjectOptions.cmake for more information about those cache variables.
+### Load / unload tuning
 
-#### Running tests
-See the detailed testing guide in our [comprehensive testing guide].
+The following filament handling values are configurable from the Experimental menu:
 
-[comprehensive testing guide]: tests/unit/README.md
+- Initial insert length
+- Fast load length
+- Unload length
+- Unload cooling retract
+- Unload ramming scale
+- Reset load/unload
 
-## Flashing Custom Firmware
+#### Initial insert length
 
-To install custom firmware, you have to break the appendix on the board. Learn how to in the following article https://help.prusa3d.com/article/zoiw36imrs-flashing-custom-firmware.
+Controls the first slow insert / load-to-gears movement.
 
-## Feedback
+Used by:
 
-- [Feature Requests from Community](https://github.com/prusa3d/Prusa-Firmware-Buddy/labels/feature%20request)
+- Dashboard autoload
+- Menu → Filament → Load
+- M600 filament change during print
 
-## Credits
+#### Fast load length
 
-- [Marlin](https://marlinfw.org/) - 3D printing core driver
-- [Klipper](https://www.klipper3d.org/) - input shaper code based on Klipper
+Controls the later hot fast-load movement.
 
-## License
+This remains separate from Initial insert length.
 
-The firmware source code is licensed under the GNU General Public License v3.0 and the graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). Fonts are licensed under different license (see [LICENSE](LICENSE.md)).
+#### Unload length
+
+Controls the unload distance.
+
+The maximum value is capped to:
+
+```text
+199 mm
+```
+
+Reason: testing showed that single unload moves around 200 mm and above can become unreliable.
+
+Unload chunking is intentionally not included in v1.0.
+
+#### Unload cooling retract
+
+Executed after ramming and before the remaining unload.
+
+The duration is approximately 5 seconds. The selected distance controls the retract speed.
+
+Examples:
+
+```text
+5 mm  = approx. 1 mm/s for 5 seconds
+10 mm = approx. 2 mm/s for 5 seconds
+15 mm = approx. 3 mm/s for 5 seconds
+```
+
+`0 mm` disables this step.
+
+#### Unload ramming scale
+
+Range:
+
+```text
+0–150 %
+```
+
+Behavior:
+
+```text
+0 %     = ramming disabled
+1–150 % = scaled ramming
+100 %   = default behavior
+```
+
+---
+
+### Reset load/unload
+
+`Reset load/unload` resets only these five values:
+
+- Initial insert length
+- Fast load length
+- Unload length
+- Unload ramming scale
+- Unload cooling retract
+
+It does **not** change:
+
+- Probe X/Y
+- M851 Z / Live-Z
+- M92 E
+- M500 tuning values
+- Axis direction
+- Enable EEPROM save
+- Print finish melody
+- PID settings
+- Stepper current
+- Native Prusa settings
+
+---
+
+### M600 / filament change improvements
+
+The print-time filament change path now respects the custom filament handling values.
+
+Affected values:
+
+- Initial insert length
+- Fast load length
+- Unload length
+- Unload cooling retract
+- Unload ramming scale
+
+This improves tuning for LGX / LGX Shortcut and similar third-party extruder setups.
+
+Notes:
+
+- The MK3.5 UI filament-change path uses the stubbed M600 / Pause FSM path.
+- Auto Retract was not changed.
+- Marlin M603 / M503 compatibility was preserved.
+
+---
+
+### Optional print finish melody
+
+Adds an optional print finish melody.
+
+Default:
+
+```text
+Off
+```
+
+When enabled, the melody plays only after a successful print finish.
+
+It does **not** play on:
+
+- Cancel
+- Abort
+- Pause
+- Filament change
+- Crash
+- Failed print
+
+Melody sequence:
+
+```gcode
+M300 S1200 P150
+G4 P200
+M300 S1500 P150
+G4 P200
+M300 S1800 P300
+G4 P500
+```
+
+---
+
+### Safer M500 / M501 / M502 / M503 / M851 behavior
+
+This release includes safeguards and fixes for:
+
+- preserving axis direction signs
+- keeping M603 compatibility
+- synchronizing terminal `M851 X/Y` with the menu
+- protecting `M851 Z` / Live-Z during `M502`
+- keeping Probe X/Y reset separate from Live-Z
+- keeping load/unload reset separate from other tuning values
+
+#### M502 behavior
+
+`M502` resets runtime X/Y probe position to factory defaults but preserves the current Z / Live-Z value.
+
+Example before:
+
+```gcode
+M851 X23.00 Y12.00 Z-1.50
+```
+
+Expected after `M502`:
+
+```gcode
+M851 X23.00 Y5.00 Z-1.50
+```
+
+So:
+
+- X/Y return to Prusa factory defaults
+- Z / Live-Z remains unchanged
+
+---
+
+## Recommended LGX setup
+
+For Bondtech LGX / LGX Shortcut:
+
+```text
+Probe X position: 23
+Probe Y position: 12
+```
+
+Then verify with:
+
+```gcode
+M503
+```
+
+Expected example:
+
+```gcode
+M851 X23.00 Y12.00 Z<your Live-Z>
+```
+
+Do not copy another printer’s Z / Live-Z value.
+
+### Extruder current
+
+This release does not change extruder current.
+
+A typical MK3.5 value seen in `M503` is:
+
+```gcode
+M906 T0 E490
+```
+
+This means 490 mA and is within the typical practical range for LGX-style setups.
+
+---
+
+## Defaults
+
+| Setting | Default |
+|---|---:|
+| Probe X position | 23 |
+| Probe Y position | 5 |
+| Initial insert length | 45 mm |
+| Fast load length | 45 mm |
+| Unload length | 45 mm |
+| Unload ramming scale | 100 % |
+| Unload cooling retract | 0 mm |
+| Print finish melody | Off |
+| Enable EEPROM save | Off |
+
+---
+
+## Before flashing
+
+Save your current settings:
+
+```gcode
+M503
+```
+
+Keep a copy of the full output.
+
+Important values to note:
+
+- M851 X/Y/Z
+- M92 E
+- M906 E
+- M603 L/U
+- Live-Z / First Layer Calibration value
+- Existing custom load/unload values
+
+---
+
+## After flashing
+
+Run:
+
+```gcode
+M503
+```
+
+Check:
+
+- Probe/M851 X/Y/Z
+- Live-Z / First Layer Calibration
+- Extruder steps
+- Extruder current
+- Load/unload values
+
+For LGX / LGX Shortcut:
+
+```text
+Probe X position: 23
+Probe Y position: 12
+```
+
+Then run a small test print.
+
+---
+
+## Test status
+
+The orange custom menu options included in this mod were successfully and thoroughly tested.
+
+Tested before release:
+
+- Firmware boots
+- Menu structure works
+- Load / unload works
+- M600 filament change during print works
+- Probe X/Y menu works
+- M851 X/Y synchronization works
+- M502 preserves M851 Z / Live-Z
+- Print finish melody works as optional feature
+- `mk3.5_release_boot` build completed successfully
+- Final test print completed successfully
+
+No errors were found during testing of the orange custom mod options.
+
+---
+
+## Not included in v1.0
+
+The following features are intentionally not included in v1.0:
+
+- Microstep switching
+- E-step / microstep menu
+- Extruder current menu
+- Speed / acceleration hardware-limit overrides
+- Fan overdrive
+- Fan startup boost
+- Heater / thermistor selection
+- Unload chunking above 199 mm
+- Auto Retract changes
+- Special “Off” text for 0 % ramming scale
+
+Reason: v1.0 is intended to stay focused and stable.
+
+---
+
+## Planned future ideas
+
+Possible v1.1+ topics:
+
+- Hotend heater selection
+- Hotend thermistor selection
+- Heatbed thermistor / sensor selection
+- LGX preset profiles
+- Third-party extruder profiles
+- Extruder current tuning
+- Microstep / E-step integration
+- Advanced speed and acceleration limit controls
+- Improved UI labels / help texts
+- Optional unload chunking
+
+Future custom options that are added before full real-world validation are planned to be shown in **red** until they have been thoroughly tested.
+
+Heater and thermistor support is safety-critical and must be implemented carefully with correct temperature tables, limits, PID behavior and thermal runaway protection.
+
+---
+
+## Project notes and contributions
+
+This project was only possible with the help of **ChatGPT Plus** and **Codex** as development assistance tools.
+
+Additional developers, testers and contributors are welcome.
+
+Feature requests, ideas and suggestions can be submitted through GitHub issues.
+
+Please note that I currently only own and test with a **Bondtech LGX Shortcut** setup. Other extruders, hotends, heaters or thermistor configurations cannot be properly validated by me without access to the required hardware.
+
+Support for additional hardware should therefore be developed and tested together with users or developers who actually own that hardware.
+
+When reporting issues or requesting support, please include as much information as possible, for example:
+
+- Printer model
+- Extruder and hotend setup
+- Firmware version used
+- Relevant `M503` output
+- Steps to reproduce the issue
+- Photos or screenshots if helpful
+
+I also publish related articles, guides and 3D printing projects on my blog:
+
+[INVESTEGATE Blog](https://investegate.de/blog)
+
+---
+
+## Support the project
+
+If this firmware helps you, you can support the project here:
+
+[Donate via PayPal](https://www.paypal.com/donate?hosted_button_id=5F525DYM8GXK4)
+
+---
+
+## Upstream project
+
+This custom firmware is based on the official open-source **Prusa-Firmware-Buddy** project by Prusa Research:
+
+[Prusa-Firmware-Buddy](https://github.com/prusa3d/Prusa-Firmware-Buddy)
+
+---
+
+## Disclaimer
+
+This is unofficial custom firmware.
+
+It is not made, approved or supported by Prusa Research or Bondtech.
+
+Use at your own risk.
+
+Always verify your printer settings after flashing and run a small test print before normal use.
