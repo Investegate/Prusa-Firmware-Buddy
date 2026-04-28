@@ -1,5 +1,7 @@
 <p align="center">
-  <img width="900" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/8d2f995d-78ea-4179-afd0-5cf49090d13d" />
+  <a href="https://investegate.de" target="_blank" rel="noopener noreferrer">
+    <img width="900" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/8d2f995d-78ea-4179-afd0-5cf49090d13d" />
+  </a>
 </p>
 
 # INVESTEGATE Custom Firmware for Prusa MK3.5 / MK3.5S
@@ -638,7 +640,9 @@ Always verify your printer settings after flashing and run a small test print be
 ---
 
 <p align="center">
-  <img width="69" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/a76a7691-8d6d-4e51-8c5c-3f5ad39ac06a" />
+  <a href="https://investegate.de" target="_blank" rel="noopener">
+    <img width="69" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/a76a7691-8d6d-4e51-8c5c-3f5ad39ac06a" />
+  </a>
 </p>
 
 ---
