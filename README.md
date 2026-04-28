@@ -1,4 +1,6 @@
-<img width="3000" height="2083" alt="investegate PRO HD TEXT NEW 3D" src="https://github.com/user-attachments/assets/438f9018-5cde-41fb-ad1c-7a3008f28160" />
+<p align="center">
+  <img width="900" alt="INVESTEGATE logo" src="https://github.com/user-attachments/assets/438f9018-5cde-41fb-ad1c-7a3008f28160" />
+</p>
 
 # INVESTEGATE Custom Firmware for Prusa MK3.5 / MK3.5S
 
@@ -14,7 +16,7 @@ More information, documentation and related 3D printing projects: <strong><a hre
 
 Current release:
 
-**6.5.3 MOD v1.0**
+**v1.0 / 6.5.3 MOD v1.0**
 
 Download the firmware from the GitHub Releases page:
 
@@ -216,7 +218,7 @@ Controls the first slow insert / load-to-gears movement.
 Used by:
 
 - Dashboard autoload
-- Menu -> Filament -> Load
+- Menu → Filament → Load
 - M600 filament change during print
 
 #### Fast load length
@@ -260,14 +262,14 @@ Examples:
 Range:
 
 ```text
-0-150 %
+0–150 %
 ```
 
 Behavior:
 
 ```text
 0 %     = ramming disabled
-1-150 % = scaled ramming
+1–150 % = scaled ramming
 100 %   = default behavior
 ```
 
@@ -434,7 +436,7 @@ This means 490 mA and is within the typical practical range for LGX-style setups
 | Initial insert length | 45 mm |
 | Fast load length | 45 mm |
 | Unload length | 45 mm |
-| Unload ramming scale | 100% |
+| Unload ramming scale | 100 % |
 | Unload cooling retract | 0 mm |
 | Print finish melody | Off |
 | Enable EEPROM save | Off |
