@@ -14,6 +14,35 @@ More information, documentation and related 3D printing projects: <strong><a hre
 
 ---
 
+## Table of contents
+
+- [Latest release](#latest-release)
+- [Compatibility](#compatibility)
+- [Important warning](#important-warning)
+- [Custom firmware flashing / appendix seal](#custom-firmware-flashing--appendix-seal)
+- [Installation](#installation)
+- [How to open the Experimental menu](#how-to-open-the-experimental-menu)
+- [Screenshots](#screenshots)
+- [Main features](#main-features)
+  - [Probe X/Y position controls](#probe-xy-position-controls)
+  - [Load / unload tuning](#load--unload-tuning)
+  - [M600 / filament change improvements](#m600--filament-change-improvements)
+  - [Optional print finish melody](#optional-print-finish-melody)
+  - [Safer M500 / M501 / M502 / M503 / M851 behavior](#safer-m500--m501--m502--m503--m851-behavior)
+- [Recommended LGX setup](#recommended-lgx-setup)
+- [Defaults](#defaults)
+- [Before flashing](#before-flashing)
+- [After flashing](#after-flashing)
+- [Test status](#test-status)
+- [Not included in v1.0](#not-included-in-v10)
+- [Planned future ideas](#planned-future-ideas)
+- [Project notes and contributions](#project-notes-and-contributions)
+- [Support the project](#support-the-project)
+- [Upstream project](#upstream-project)
+- [Disclaimer](#disclaimer)
+
+---
+
 ## Latest release
 
 Current release:
