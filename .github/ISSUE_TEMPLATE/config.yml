@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Download latest firmware release
-    url: https://github.com/Investegate/Prusa-Firmware-Buddy/releases/
+    url: https://github.com/INVESTEGATE/Prusa-MK3.5-MK3.5S-Custom-Firmware/releases/
     about: Download the latest tested BBF firmware release here.
   - name: Official Prusa custom firmware flashing instructions
     url: https://help.prusa3d.com/article/flashing-custom-firmware-core-one-l-core-one-mk4-s-mk3-9-s-mk3-5-s_814967

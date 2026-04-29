@@ -51,7 +51,7 @@ Current release:
 
 Download the firmware from the GitHub Releases page:
 
-[Download 6.5.3 MOD v1.0](https://github.com/Investegate/Prusa-Firmware-Buddy/releases/tag/v1.0)
+[Download 6.5.3 MOD v1.0](https://github.com/INVESTEGATE/Prusa-MK3.5-MK3.5S-Custom-Firmware/releases/tag/v1.0)
 
 Firmware file:
 
